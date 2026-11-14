@@ -202,10 +202,8 @@ function workView(){
   const hoshas = [...new Set(S.work.map(w => w.hosha).filter(Boolean))];
   let h = '';
 
-  if (role === 'supervisor') {
-    const ords = S.orders.filter(o => o.status !== 'تم');
-    if (ords.length) h += `<div class="sec">📌 أوامر ليك</div>` + ords.map(o => orderCard(o, true)).join('');
-  }
+  const ords = S.orders.filter(o => o.status !== 'تم');
+  if (ords.length) h += `<div class="sec">📌 ${role === 'manager' ? 'أوامر لسه مخلصتش' : 'أوامر ليك'} (${ords.length})</div>` + ords.map(o => orderCard(o, role !== 'manager')).join('');
 
   h += `<div class="chips">${[-1, 0, 1].map(n => { const d = addDays(n);
       return `<button class="chip ${DAY === d ? 'on' : ''}" onclick="DAY='${d}';render()">${dayName(d)}</button>`; }).join('')}
