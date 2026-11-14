@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Farm Work Plan</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--g:#2e6b3a;--g2:#e8f1e6;--bg:#f4f7f3;--t:#1f2a22;--m:#6b776d;--r:#c0392b;--o:#e08a1e;--b:#2f7bbf;--ok:#27964f;--line:#e3e9e1}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--bg);color:var(--t);font-size:15px}
+.top{position:sticky;top:0;z-index:5}
+header{background:var(--g);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
+header small{opacity:.85}
+.hbtn{background:#ffffff26;color:#fff;border:0;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+nav{display:flex;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{flex:1;min-width:84px;padding:12px 6px;border:0;background:none;font:inherit;color:var(--m);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button.on{color:var(--g);border-color:var(--g);font-weight:700}
+.badge{background:var(--r);color:#fff;border-radius:10px;font-size:11px;padding:0 6px;margin-right:4px}
+main{max-width:720px;margin:auto;padding:14px 14px 60px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.muted{color:var(--m);font-size:13px;margin-top:3px}
+.tag{padding:2px 10px;border-radius:12px;font-size:12px;color:#fff;white-space:nowrap}
+.t-red{background:var(--r)}.t-or{background:var(--o)}.t-ok{background:var(--ok)}.t-b{background:var(--b)}.t-g{background:#8a948c}
+input,select,textarea{width:100%;padding:10px;border:1px solid #cdd6cb;border-radius:8px;font:inherit;margin:4px 0;background:#fff;color:var(--t)}
+textarea{min-height:64px;resize:vertical}
+.btn{border:0;border-radius:8px;padding:9px 14px;font:inherit;color:#fff;background:var(--g);cursor:pointer}
+.btn.r{background:var(--r)}.btn.b{background:var(--b)}.btn.o{background:var(--o)}.btn.l{background:#eef2ed;color:var(--t)}
+.btn.full{width:100%;margin-top:6px}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 8px}
+h3{margin:2px 0 8px;font-size:16px}
+.sec{font-weight:700;color:var(--m);margin:16px 2px 8px;font-size:14px}
+.chips{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);background:#fff;border-radius:18px;padding:6px 14px;cursor:pointer;font:inherit;color:var(--t)}
+.chip.on{background:var(--g);color:#fff;border-color:var(--g)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;font-size:13px;color:var(--m)}
+.stat b{display:block;font-size:24px;color:var(--t)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;font-size:14px;vertical-align:top}
+th{color:var(--m);font-weight:600}
+.reply{background:var(--g2);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
+.x{background:none;border:0;color:var(--r);cursor:pointer;font-size:16px}
+#login{max-width:340px;margin:12vh auto;text-align:center;padding:20px}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:9;max-width:90vw}
+.empty{text-align:center;color:var(--m);padding:22px;background:#fff;border:1px dashed var(--line);border-radius:12px}
+details>summary{cursor:pointer;color:var(--g);font-weight:700;list-style:none}
+details>summary::-webkit-details-marker{display:none}
+.loading{text-align:center;padding:40px;color:var(--m)}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">جاري التحميل…</div></div>
+<div id="toast"></div>
+
+<script>
+/* ======== حط هنا رابط الـ Apps Script بعد ما تعمل Deploy ======== */
+const API_URL = 'https://script.google.com/macros/s/AKfycby5_RkLhmlmZcvXcDW0cwyPrT-2AbH5NGOD5T-R-myXVEw-ta_u_KlaRXkTz85q5jbpVQ/exec';
+/* ================================================================ */
+const SHARE_LINK = ''; // سيبه فاضي
+
+const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const RTYPES = ['شراء','برنامج زراعي','عمالة','استفسار'];
+const RICON = {'شراء':'🛒','برنامج زراعي':'📋','عمالة':'👷','استفسار':'❓','احتياج':'📦'};
+const RST = {'مستني':'t-or','موافق':'t-ok','مرفوض':'t-red','اترد':'t-b'};
+const WST = {'لسه':'t-red','شغال':'t-or','تم':'t-ok'};
+const BCATS = ['سماد','مبيدات','خامات','عمالة','صيانة','وقود','أخرى'];
+
+let PIN = '', S = null, TAB = 0, DAY = null, BMONTH = 'next', busy = false;
+try { PIN = localStorage.getItem('fwp_phone') || ''; } catch (e) {}
+
+const $ = s => document.querySelector(s);
+const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => (Number(n) || 0).toLocaleString('en-US');
+function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function addDays(n){ const d = new Date(); d.setDate(d.getDate()+n); return ymd(d); }
+function monthName(m){ if(!m) return ''; const [y,mm] = String(m).split('-'); return MONTHS[Number(mm)-1]+' '+y; }
+function dayName(d){
+  if (d === addDays(0)) return 'النهارده';
+  if (d === addDays(1)) return 'بكره';
+  if (d === addDays(-1)) return 'امبارح';
+  return d;
+}
+function toast(m){ const t = $('#toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 2600); }
+
+async function api(action, data){
+  if (API_URL.indexOf('PASTE_') === 0) throw new Error('لسه ماحطيتش رابط الـ Apps Script في الملف');
+  const r = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ pin: PIN, action, data }) });
+  const j = await r.json();
+  if (!j.ok) throw new Error(j.error);
+  return j.data;
+}
+async function run(action, data, msg){
+  if (busy) return; busy = true;
+  try { S = await api(action, data); render(); if (msg) toast(msg); }
+  catch (e) { toast('⚠ ' + e.message); }
+  finally { busy = false; }
+}
+async function refresh(silent){
+  try { S = await api('load'); render(); if (!silent) toast('اتحدث ✔'); }
+  catch (e) { if (!silent) toast('⚠ ' + e.message); }
+}
+
+/* ===================== الدخول ===================== */
+function loginView(){
+  $('#app').innerHTML = `<div id="login">
+    <div style="font-size:52px">🌱</div><h2 style="margin:6px 0 18px">Farm Work Plan</h2>
+    <input id="pin" type="tel" inputmode="numeric" dir="ltr" style="text-align:center" placeholder="رقم الموبايل" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn full" onclick="doLogin()">دخول</button></div>`;
+}
+async function doLogin(){
+  PIN = normPhone(val('pin'));
+  if (!PIN) return toast('اكتب رقم الموبايل');
+  try {
+    S = await api('load');
+    try { localStorage.setItem('fwp_phone', PIN); } catch (e) {}
+    TAB = 0; DAY = null; render();
+  } catch (e) { toast('⚠ ' + e.message); }
+}
+function logout(){
+  try { localStorage.removeItem('fwp_phone'); } catch (e) {}
+  PIN = ''; S = null; loginView();
+}
+
+/* ===================== التابات ===================== */
+const pendingReqs = () => S.requests.filter(r => r.status === 'مستني').length;
+const openOrders  = () => S.orders.filter(o => o.status !== 'تم').length;
+const TABS = {
+  manager:   [['الطلبات', reqView, pendingReqs], ['الأوامر', ordView], ['الشغل', workView], ['البادجيت', budView], ['الملخص', sumView], ['التسجيل', usersView]],
+  engineer:  [['الشغل', workView], ['طلباتي', reqView], ['مطلوب مني', ordView, openOrders], ['البادجيت', budView]],
+  supervisor:[['الشغل', workView, openOrders]]
+};
+function render(){
+  const tabs = TABS[S.me.role];
+  if (!tabs) { $('#app').innerHTML = '<div class="empty">الدور ده مش متعرف في شيت Users</div>'; return; }
+  if (TAB >= tabs.length) TAB = 0;
+  const y = window.scrollY;
+  $('#app').innerHTML = `<div class="top"><header>
+      <div><b>🌱 Farm Work Plan</b><br><small>${esc(S.me.name)}</small></div>
+      <div><button class="hbtn" onclick="refresh()">↻ تحديث</button> <button class="hbtn" onclick="logout()">خروج</button></div>
+    </header>
+    ${tabs.length > 1 ? `<nav>${tabs.map((t, i) => { const n = t[2] ? t[2]() : 0;
+      return `<button class="${i === TAB ? 'on' : ''}" onclick="TAB=${i};render();scrollTo(0,0)">${t[0]}${n ? `<span class="badge">${n}</span>` : ''}</button>`; }).join('')}</nav>` : ''}
+    </div><main>${tabs[TAB][1]()}</main>`;
+  window.scrollTo(0, y);
+}
+
+/* ===================== الشغل ===================== */
+function workView(){
+  const role = S.me.role;
+  if (!DAY) DAY = role === 'engineer' ? addDays(1) : addDays(0);
+  const list = S.work.filter(w => w.date === DAY);
+  const tot = list.reduce((a, w) => a + (Number(w.workers) || 0), 0);
+  const done = list.filter(w => w.status === 'تم').length;
+  const hoshas = [...new Set(S.work.map(w => w.hosha).filter(Boolean))];
+  let h = '';
+
+  if (role === 'supervisor') {
+    const ords = S.orders.filter(o => o.status !== 'تم');
+    if (ords.length) h += `<div class="sec">📌 أوامر ليك</div>` + ords.map(o => orderCard(o, true)).join('');
+  }
+
+  h += `<div class="chips">${[-1, 0, 1].map(n => { const d = addDays(n);
+      return `<button class="chip ${DAY === d ? 'on' : ''}" onclick="DAY='${d}';render()">${dayName(d)}</button>`; }).join('')}
+    <input type="date" value="${DAY}" onchange="DAY=this.value;render()" style="width:auto;margin:0;padding:6px"></div>`;
+
+  h += `<div class="stats"><div class="stat"><b>${list.length}</b>شغلانة</div>
+    <div class="stat"><b>${tot}</b>عمالة باليومية</div><div class="stat"><b>${done}/${list.length}</b>خلص</div></div>`;
+
+  if (role !== 'supervisor') {
+    h += `<details class="card" ${role === 'engineer' ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
+      <input id="w_task" placeholder="الشغلانة (تقليم، تعشيب، رش…)">
+      <div class="grid2"><input id="w_hosha" list="hl" placeholder="الحوشة"><input id="w_n" type="number" min="0" inputmode="numeric" placeholder="عمالة باليومية (العدد)"></div>
+      <datalist id="hl">${hoshas.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
+      <select id="w_sup">${S.users.filter(u => u.role === 'supervisor').map(u => `<option>${esc(u.name)}</option>`).join('')}<option value="">أي مشرف</option></select>
+      <input id="w_notes" placeholder="ملاحظة (اختياري)">
+      <button class="btn full" onclick="addWork()">إضافة</button></details>`;
+  }
+
+  h += list.length ? list.map(workCard).join('') : `<div class="empty">مفيش شغل متسجل لـ ${dayName(DAY)}</div>`;
+
+  if (role === 'supervisor') {
+    h += `<div class="sec">📦 محتاج حاجة؟</div><div class="card">
+      <textarea id="sv_d" placeholder="اكتب الاحتياج (عمالة باليومية زيادة، أدوات، خامات…)"></textarea>
+      <button class="btn b full" onclick="addReq('احتياج','sv_d')">إرسال</button></div>`;
+    const mine = [...S.requests].reverse().slice(0, 5);
+    if (mine.length) h += mine.map(reqCard).join('');
+  }
+  return h;
+}
+function workCard(w){
+  const role = S.me.role;
+  let h = `<div class="card"><div class="row"><b>${esc(w.task)}${w.hosha ? ' — ' + esc(w.hosha) : ''}</b>
+    <span class="tag ${WST[w.status] || 't-g'}">${esc(w.status)}</span></div>
+    <div class="muted">👷 عمالة باليومية: ${esc(w.workers)} · من ${esc(w.by)}${w.sup ? ' · المشرف: ' + esc(w.sup) : ''}</div>
+    ${w.notes ? `<div class="muted">📝 ${esc(w.notes)}</div>` : ''}
+    ${w.names ? `<div class="muted">الرجالة: ${esc(w.names)}</div>` : ''}`;
+  if (role === 'supervisor' && w.status !== 'تم') {
+    h += `<input id="nm_${w.id}" placeholder="أسماء الرجالة (اختياري)" value="${esc(w.names)}">
+      <div class="btns">${w.status === 'لسه' ? `<button class="btn o" onclick="setWork('${w.id}','شغال')">بدأنا</button>` : ''}
+      <button class="btn" onclick="setWork('${w.id}','تم')">تم ✔</button></div>`;
+  }
+  if (role === 'supervisor' && w.status === 'تم') {
+    h += `<div class="btns"><button class="btn l" onclick="setWork('${w.id}','شغال')">رجّعها شغال</button></div>`;
+  }
+  if (role !== 'supervisor' && (role === 'manager' || (w.by === S.me.name && w.status === 'لسه'))) {
+    h += `<div class="btns"><button class="btn l" onclick="delWork('${w.id}')">حذف</button></div>`;
+  }
+  return h + '</div>';
+}
+function addWork(){
+  const task = val('w_task'); if (!task) return toast('اكتب الشغلانة');
+  run('addWork', { date: DAY, task, hosha: val('w_hosha'), workers: val('w_n'), sup: val('w_sup'), notes: val('w_notes') }, 'اتضافت ✔');
+}
+function setWork(id, status){ run('updWork', { id, status, names: val('nm_' + id) }, status === 'تم' ? 'تمام ✔' : 'اتسجل'); }
+function delWork(id){ if (confirm('تحذف الشغلانة دي؟')) run('delWork', { id }, 'اتحذفت'); }
+
+/* ===================== الطلبات ===================== */
+function reqView(){
+  const mgr = S.me.role === 'manager';
+  let h = '';
+  if (!mgr) {
+    h += `<div class="card"><h3>طلب جديد</h3>
+      <select id="rq_t">${RTYPES.map(t => `<option>${t}</option>`).join('')}</select>
+      <textarea id="rq_d" placeholder="التفاصيل: الصنف والكمية، أو المحصول اللي محتاج له برنامج، أو عدد العمالة…"></textarea>
+      <button class="btn full" onclick="addReq(val('rq_t'),'rq_d')">إرسال</button></div>`;
+  }
+  const list = [...S.requests].sort((a, b) =>
+    ((a.status === 'مستني' ? 0 : 1) - (b.status === 'مستني' ? 0 : 1)) || String(b.created).localeCompare(String(a.created)));
+  const pend = list.filter(r => r.status === 'مستني'), rest = list.filter(r => r.status !== 'مستني');
+  if (!list.length) return h + '<div class="empty">مفيش طلبات لسه</div>';
+  if (pend.length) h += `<div class="sec">⏳ مستني ${mgr ? 'ردك' : 'الرد'} (${pend.length})</div>` + pend.map(reqCard).join('');
+  if (rest.length) h += `<div class="sec">✔ اتعمل عليها</div>` + rest.slice(0, 40).map(reqCard).join('');
+  return h;
+}
+function reqCard(r){
+  const mgr = S.me.role === 'manager';
+  let h = `<div class="card"><div class="row"><b>${RICON[r.type] || '•'} ${esc(r.type)}</b>
+    <span class="tag ${RST[r.status] || 't-g'}">${esc(r.status)}</span></div>
+    <div style="margin-top:6px;white-space:pre-wrap">${esc(r.details)}</div>
+    <div class="muted">${mgr ? 'من ' + esc(r.by) + ' · ' : ''}${esc(r.created)}</div>
+    ${r.reply ? `<div class="reply">💬 ${esc(r.reply)}</div>` : ''}`;
+  if (mgr && r.status === 'مستني') {
+    h += `<textarea id="rp_${r.id}" placeholder="رد أو توجيه (اختياري مع الموافقة)"></textarea>
+      <div class="btns"><button class="btn" onclick="replyReq('${r.id}','موافق')">موافق</button>
+      <button class="btn b" onclick="replyReq('${r.id}','اترد')">رد</button>
+      <button class="btn r" onclick="replyReq('${r.id}','مرفوض')">رفض</button></div>`;
+  }
+  return h + '</div>';
+}
+function addReq(type, field){
+  const details = val(field); if (!details) return toast('اكتب التفاصيل');
+  run('addReq', { type, details }, 'اتبعت ✔');
+}
+function replyReq(id, status){
+  const reply = val('rp_' + id);
+  if (status === 'اترد' && !reply) return toast('اكتب الرد الأول');
+  run('replyReq', { id, status, reply }, 'اتبعت ✔');
+}
+
+/* ===================== الأوامر ===================== */
+function ordView(){
+  const mgr = S.me.role === 'manager';
+  let h = '';
+  if (mgr) {
+    const people = S.users.filter(u => u.role !== 'manager');
+    h += `<div class="card"><h3>أمر جديد</h3>
+      <select id="o_to">${people.map(u => `<option>${esc(u.name)}</option>`).join('')}<option>الكل</option></select>
+      <textarea id="o_t" placeholder="المطلوب"></textarea>
+      <div class="muted">آخر ميعاد (اختياري)</div><input id="o_due" type="date">
+      <button class="btn full" onclick="addOrder()">إرسال</button></div>`;
+  }
+  const open = S.orders.filter(o => o.status !== 'تم').reverse();
+  const done = S.orders.filter(o => o.status === 'تم').reverse();
+  if (!S.orders.length) return h + `<div class="empty">${mgr ? 'مفيش أوامر لسه' : 'مفيش حاجة مطلوبة منك دلوقتي'}</div>`;
+  if (open.length) h += `<div class="sec">⏳ لسه (${open.length})</div>` + open.map(o => orderCard(o, !mgr)).join('');
+  if (done.length) h += `<div class="sec">✔ خلصت</div>` + done.slice(0, 30).map(o => orderCard(o, false)).join('');
+  return h;
+}
+function orderCard(o, canDone){
+  const mgr = S.me.role === 'manager';
+  const late = o.status !== 'تم' && o.due && o.due < addDays(0);
+  let h = `<div class="card"><div class="row"><b>${mgr ? '👤 ' + esc(o.to) : '📌 من المدير'}</b>
+    <span class="tag ${o.status === 'تم' ? 't-ok' : late ? 't-red' : 't-or'}">${o.status === 'تم' ? 'تم' : late ? 'متأخر' : 'لسه'}</span></div>
+    <div style="margin-top:6px;white-space:pre-wrap">${esc(o.text)}</div>
+    <div class="muted">${esc(o.created)}${o.due ? ' · آخر ميعاد ' + esc(o.due) : ''}</div>
+    ${o.status === 'تم' ? `<div class="muted">✔ ${esc(o.doneAt)}</div>` : ''}
+    ${o.note ? `<div class="reply">💬 ${esc(o.note)}</div>` : ''}`;
+  if (canDone && o.status !== 'تم') {
+    h += `<input id="on_${o.id}" placeholder="ملاحظة (اختياري)">
+      <div class="btns"><button class="btn" onclick="doneOrder('${o.id}')">خلصت ✔</button></div>`;
+  }
+  if (mgr) h += `<div class="btns"><button class="btn l" onclick="delOrder('${o.id}')">حذف</button></div>`;
+  return h + '</div>';
+}
+function addOrder(){
+  const text = val('o_t'); if (!text) return toast('اكتب المطلوب');
+  run('addOrder', { to: val('o_to'), text, due: val('o_due') }, 'اتبعت ✔');
+}
+function doneOrder(id){ run('doneOrder', { id, note: val('on_' + id) }, 'تمام ✔'); }
+function delOrder(id){ if (confirm('تحذف الأمر ده؟')) run('delOrder', { id }, 'اتحذف'); }
+
+/* ===================== البادجيت ===================== */
+function budView(){
+  const m = S.months[BMONTH], open = BMONTH === 'next';
+  const items = S.budget.filter(b => b.month === m);
+  const tot = items.reduce((a, b) => a + (Number(b.amount) || 0), 0);
+  const byCat = {};
+  items.forEach(b => byCat[b.category] = (byCat[b.category] || 0) + (Number(b.amount) || 0));
+  const mgr = S.me.role === 'manager';
+
+  let h = `<div class="chips">
+    <button class="chip ${open ? 'on' : ''}" onclick="BMONTH='next';render()">${monthName(S.months.next)} · مفتوح</button>
+    <button class="chip ${!open ? 'on' : ''}" onclick="BMONTH='current';render()">${monthName(S.months.current)} · مقفول</button></div>`;
+
+  h += `<div class="card"><div class="row"><h3 style="margin:0">بادجيت ${monthName(m)}</h3>
+    <span class="tag ${open ? 't-b' : 't-g'}">${open ? 'مفتوح' : 'مقفول'}</span></div>
+    <div style="font-size:26px;font-weight:700;margin:8px 0">${num(tot)} <span class="muted">جنيه</span></div>
+    ${Object.keys(byCat).length ? `<div class="chips" style="margin:0">${Object.entries(byCat).sort((a, b) => b[1] - a[1])
+      .map(([c, v]) => `<span class="chip" style="cursor:default">${esc(c)}: ${num(v)}</span>`).join('')}</div>` : ''}</div>`;
+
+  if (open) {
+    h += `<div class="card"><h3>➕ بند جديد</h3><input id="b_i" placeholder="البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)">
+      <div class="grid2"><select id="b_c">${BCATS.map(c => `<option>${c}</option>`).join('')}</select>
+      <input id="b_a" type="number" min="0" inputmode="numeric" placeholder="المبلغ"></div>
+      <button class="btn full" onclick="addBudget()">إضافة</button></div>`;
+  }
+
+  if (!items.length) return h + `<div class="empty">مفيش بنود لسه</div>`;
+  h += `<div class="card"><table><tr><th>البند</th><th>المبلغ</th><th>أضافه</th><th></th></tr>
+    ${items.map(b => `<tr><td>${esc(b.item)}<div class="muted">${esc(b.category)}</div></td><td>${num(b.amount)}</td><td class="muted">${esc(b.by)}</td>
+      <td>${open && (mgr || b.by === S.me.name) ? `<button class="x" onclick="delBudget('${b.id}')">✕</button>` : ''}</td></tr>`).join('')}
+    <tr><th>الإجمالي</th><th>${num(tot)}</th><th></th><th></th></tr></table></div>`;
+  if (open) h += `<div class="muted" style="text-align:center">بادجيت ${monthName(S.months.next)} بيتقفل لما الشهر يبدأ، وساعتها بيتفتح اللي بعده</div>`;
+  return h;
+}
+function addBudget(){
+  const item = val('b_i'), amount = val('b_a');
+  if (!item) return toast('اكتب البند'); if (!(Number(amount) > 0)) return toast('اكتب المبلغ');
+  run('addBudget', { month: S.months.next, item, category: val('b_c'), amount }, 'اتضاف ✔');
+}
+function delBudget(id){ if (confirm('تحذف البند ده؟')) run('delBudget', { id }, 'اتحذف'); }
+
+/* ===================== الملخص (المدير) ===================== */
+function sumView(){
+  const td = addDays(0), tm = addDays(1);
+  const today = S.work.filter(w => w.date === td), tomo = S.work.filter(w => w.date === tm);
+  const c = s => today.filter(w => w.status === s).length;
+  const men = l => l.reduce((a, w) => a + (Number(w.workers) || 0), 0);
+  const nextBud = S.budget.filter(b => b.month === S.months.next).reduce((a, b) => a + (Number(b.amount) || 0), 0);
+  const openO = S.orders.filter(o => o.status !== 'تم');
+  const late = openO.filter(o => o.due && o.due < td).length;
+
+  let h = `<div class="sec">شغل النهارده (عمالة باليومية: ${men(today)})</div>
+    <div class="stats"><div class="stat"><b style="color:var(--ok)">${c('تم')}</b>خلص</div>
+    <div class="stat"><b style="color:var(--o)">${c('شغال')}</b>شغال</div>
+    <div class="stat"><b style="color:var(--r)">${c('لسه')}</b>لسه</div></div>`;
+  const notDone = today.filter(w => w.status !== 'تم');
+  if (notDone.length) h += notDone.map(workCard).join('');
+
+  h += `<div class="sec">نظرة سريعة</div>
+    <div class="card" onclick="TAB=0;render()" style="cursor:pointer"><div class="row"><span>⏳ طلبات مستنية ردك</span><b>${pendingReqs()}</b></div></div>
+    <div class="card" onclick="TAB=1;render()" style="cursor:pointer"><div class="row"><span>📌 أوامر لسه مخلصتش</span><b>${openO.length}${late ? ` <span class="tag t-red">${late} متأخر</span>` : ''}</b></div></div>
+    <div class="card" onclick="DAY='${tm}';TAB=2;render()" style="cursor:pointer"><div class="row"><span>📅 شغل بكره</span><b>${tomo.length} شغلانة · ${men(tomo)} عمالة باليومية</b></div></div>
+    <div class="card" onclick="BMONTH='next';TAB=3;render()" style="cursor:pointer"><div class="row"><span>💰 بادجيت ${monthName(S.months.next)}</span><b>${num(nextBud)} جنيه</b></div></div>`;
+  return h;
+}
+
+/* ===================== التسجيل (المدير بس) ===================== */
+function normPhone(p){
+  p = String(p || '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g, '');
+  if (p.indexOf('0020') === 0) p = p.slice(4);
+  else if (p.indexOf('20') === 0 && p.length === 12) p = p.slice(2);
+  if (p.length === 10 && p[0] === '1') p = '0' + p;
+  return p;
+}
+const appLink = () => SHARE_LINK || (location.origin + location.pathname);
+function usersView(){
+  let h = `<div class="card"><h3>➕ تسجيل جديد</h3>
+    <input id="u_n" placeholder="الاسم">
+    <input id="u_p" type="tel" inputmode="numeric" dir="ltr" style="text-align:right" placeholder="رقم الموبايل (ده اللي هيدخل بيه)">
+    <select id="u_r"><option value="engineer">مهندس تنفيذي</option><option value="supervisor">مشرف عمالة</option></select>
+    <button class="btn full" onclick="addUser()">تسجيل</button></div>`;
+  [['engineer', '👷 المهندسين التنفيذيين'], ['supervisor', '🧑‍🌾 مشرفين العمالة']].forEach(([r, t]) => {
+    const l = S.users.filter(u => u.role === r);
+    h += `<div class="sec">${t} (${l.length})</div>`;
+    h += l.length ? `<div class="card">${l.map(u => `<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)">
+        <div><b>${esc(u.name)}</b><div class="muted" dir="ltr" style="text-align:right">${esc(u.phone)}</div></div>
+        <button class="btn l" onclick="delUser('${esc(u.phone)}')">حذف</button></div>`).join('')}</div>` : `<div class="empty">مفيش حد متسجل لسه</div>`;
+  });
+  h += `<div class="sec">🔗 لينك وQR واحد للكل</div><div class="card" style="text-align:center">
+    <div id="qr" style="display:inline-block;padding:10px;background:#fff;border-radius:8px"></div>
+    <div class="muted" dir="ltr" style="word-break:break-all;margin:8px 0">${esc(appLink())}</div>
+    <button class="btn b" onclick="copyLink()">نسخ اللينك</button>
+    <div class="muted" style="margin-top:8px">كل واحد يفتح اللينك ويكتب رقم موبايله بس</div></div>`;
+  setTimeout(drawQR, 0);
+  return h;
+}
+function drawQR(){
+  const el = document.getElementById('qr');
+  if (!el || !window.QRCode) return;
+  el.innerHTML = '';
+  new QRCode(el, { text: appLink(), width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+}
+function copyLink(){
+  try { navigator.clipboard.writeText(appLink()).then(() => toast('اتنسخ ✔'), () => toast('انسخه من فوق')); }
+  catch (e) { toast('انسخه من فوق'); }
+}
+function addUser(){
+  const name = val('u_n'), phone = normPhone(val('u_p'));
+  if (!name) return toast('اكتب الاسم');
+  if (phone.length < 8) return toast('اكتب رقم موبايل صح');
+  run('addUser', { name, phone, role: val('u_r') }, 'اتسجل ✔');
+}
+function delUser(phone){ if (confirm('تحذف الشخص ده؟ مش هيقدر يدخل تاني')) run('delUser', { phone }, 'اتحذف'); }
+
+/* ===================== تحديث تلقائي ===================== */
+function formDirty(){
+  return [...document.querySelectorAll('main input, main textarea')].some(e => e.type !== 'date' && e.value !== e.defaultValue);
+}
+setInterval(() => {
+  if (S && !busy && document.visibilityState === 'visible' && !formDirty()) refresh(true);
+}, 60000);
+
+/* ===================== البداية ===================== */
+if (PIN) {
+  api('load').then(d => { S = d; render(); }).catch(() => loginView());
+} else loginView();
+</script>
+</body>
+</html>
