@@ -167,7 +167,8 @@ function logout(){
 
 /* ===================== التابات ===================== */
 const pendingReqs = () => S.requests.filter(r => r.status === 'مستني').length;
-const openOrders  = () => S.orders.filter(o => o.status !== 'تم').length;
+const isMine = o => o.to === S.me.name || o.to === 'الكل';
+const openOrders  = () => S.orders.filter(o => o.status !== 'تم' && isMine(o)).length;
 const TABS = {
   manager:   [['الرئيسية', sumView], ['الطلبات', reqView, pendingReqs], ['الأوامر', ordView], ['الشغل', workView], ['البادجيت', budView], ['التسجيل', usersView]],
   engineer:  [['الشغل', workView], ['طلباتي', reqView], ['مطلوب مني', ordView, openOrders], ['البادجيت', budView]],
@@ -203,7 +204,13 @@ function workView(){
   let h = '';
 
   const ords = S.orders.filter(o => o.status !== 'تم');
-  if (ords.length) h += `<div class="sec">📌 ${role === 'manager' ? 'أوامر لسه مخلصتش' : 'أوامر ليك'} (${ords.length})</div>` + ords.map(o => orderCard(o, role !== 'manager')).join('');
+  if (role === 'manager') {
+    if (ords.length) h += `<div class="sec">📌 أوامر لسه مخلصتش (${ords.length})</div>` + ords.map(o => orderCard(o, false)).join('');
+  } else {
+    const mine = ords.filter(isMine), others = ords.filter(o => !isMine(o));
+    if (mine.length) h += `<div class="sec">📌 أوامر ليك (${mine.length})</div>` + mine.map(o => orderCard(o, true)).join('');
+    if (others.length) h += `<div class="sec">🧑‍🌾 أوامر للمشرفين (${others.length})</div>` + others.map(o => orderCard(o, false)).join('');
+  }
 
   h += `<div class="chips">${[-1, 0, 1].map(n => { const d = addDays(n);
       return `<button class="chip ${DAY === d ? 'on' : ''}" onclick="DAY='${d}';render()">${dayName(d)}</button>`; }).join('')}
@@ -315,9 +322,10 @@ function ordView(){
       <div class="muted">آخر ميعاد (اختياري)</div><input id="o_due" type="date">
       <button class="btn full" onclick="addOrder()">إرسال</button></div>`;
   }
-  const open = S.orders.filter(o => o.status !== 'تم').reverse();
-  const done = S.orders.filter(o => o.status === 'تم').reverse();
-  if (!S.orders.length) return h + `<div class="empty">${mgr ? 'مفيش أوامر لسه' : 'مفيش حاجة مطلوبة منك دلوقتي'}</div>`;
+  const list = mgr ? S.orders : S.orders.filter(isMine);
+  const open = list.filter(o => o.status !== 'تم').reverse();
+  const done = list.filter(o => o.status === 'تم').reverse();
+  if (!list.length) return h + `<div class="empty">${mgr ? 'مفيش أوامر لسه' : 'مفيش حاجة مطلوبة منك دلوقتي'}</div>`;
   if (open.length) h += `<div class="sec">⏳ لسه (${open.length})</div>` + open.map(o => orderCard(o, !mgr)).join('');
   if (done.length) h += `<div class="sec">✔ خلصت</div>` + done.slice(0, 30).map(o => orderCard(o, false)).join('');
   return h;
@@ -325,13 +333,13 @@ function ordView(){
 function orderCard(o, canDone){
   const mgr = S.me.role === 'manager';
   const late = o.status !== 'تم' && o.due && o.due < addDays(0);
-  let h = `<div class="card"><div class="row"><b>${mgr ? '👤 ' + esc(o.to) : '📌 من المدير'}</b>
+  let h = `<div class="card"><div class="row"><b>${mgr || !isMine(o) ? '👤 ' + esc(o.to) : '📌 من المدير'}</b>
     <span class="tag ${o.status === 'تم' ? 't-ok' : late ? 't-red' : 't-or'}">${o.status === 'تم' ? 'تم' : late ? 'متأخر' : 'لسه'}</span></div>
     <div style="margin-top:6px;white-space:pre-wrap">${esc(o.text)}</div>
     <div class="muted">${esc(o.created)}${o.due ? ' · آخر ميعاد ' + esc(o.due) : ''}</div>
     ${o.status === 'تم' ? `<div class="muted">✔ ${esc(o.doneAt)}</div>` : ''}
     ${o.note ? `<div class="reply">💬 ${esc(o.note)}</div>` : ''}`;
-  if (canDone && o.status !== 'تم') {
+  if (canDone && isMine(o) && o.status !== 'تم') {
     h += `<input id="on_${o.id}" placeholder="ملاحظة (اختياري)">
       <div class="btns"><button class="btn" onclick="doneOrder('${o.id}')">خلصت ✔</button></div>`;
   }
