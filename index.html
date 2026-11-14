@@ -21,7 +21,7 @@ header{background:var(--g);color:#fff;padding:10px 16px;display:flex;justify-con
 header small{opacity:.85}
 .hbtn{background:#ffffff26;color:#fff;border:0;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
 nav{display:flex;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
-nav button{flex:1;min-width:84px;padding:12px 6px;border:0;background:none;font:inherit;color:var(--m);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button{flex:1 1 0;min-width:0;padding:12px 2px;font-size:13.5px;border:0;background:none;font:inherit;color:var(--m);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
 nav button.on{color:var(--g);border-color:var(--g);font-weight:700}
 .badge{background:var(--r);color:#fff;border-radius:10px;font-size:11px;padding:0 6px;margin-right:4px}
 main{max-width:720px;margin:auto;padding:14px 14px 60px}
@@ -375,7 +375,7 @@ function budView(){
   const tag = isNext ? ['t-b', 'مفتوح للإضافة'] : isCur ? ['t-or', 'شغال'] : ['t-g', 'اتقفل'];
   h += `<div class="card"><div class="row"><h3 style="margin:0">بادجيت ${monthName(m)}</h3><span class="tag ${tag[0]}">${tag[1]}</span></div>
     <div style="font-size:26px;font-weight:700;margin:8px 0">${num(tot)} <span class="muted">جنيه</span></div>
-    ${!isNext && tot ? `<div style="background:#eef2ed;border-radius:6px;height:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>
+    ${(!isNext || done) && tot ? `<div style="background:#eef2ed;border-radius:6px;height:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>
       <div class="row muted" style="margin-top:6px"><span>✔ اتنفذ ${num(done)}</span><span>⏳ باقي ${num(left)}</span></div>` : ''}
     ${Object.keys(byCat).length ? `<div class="chips" style="margin:8px 0 0">${Object.entries(byCat).sort((a, b) => b[1] - a[1])
       .map(([c, v]) => `<span class="chip" style="cursor:default">${esc(c)}: ${num(v)}</span>`).join('')}</div>` : ''}</div>`;
@@ -394,9 +394,8 @@ function budView(){
     ${rows.map(b => {
       const st = b.status || '', off = st === 'ملغي';
       let act = '';
-      if (isNext && (mgr || b.by === S.me.name)) act = `<button class="x" onclick="delBudget('${b.id}')">✕</button>`;
-      if (isCur) act = st ? `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span><br><button class="mini l" onclick="setBudget('${b.id}','')">رجوع</button>`
-        : `<button class="mini" style="background:var(--ok)" onclick="setBudget('${b.id}','تم')">تم ✔</button><button class="mini" style="background:var(--r)" onclick="setBudget('${b.id}','ملغي')">إلغاء</button>`;
+      if (isNext || isCur) act = st ? `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span><br><button class="mini l" onclick="setBudget('${b.id}','')">رجوع</button>`
+        : `<button class="mini" style="background:var(--ok)" onclick="setBudget('${b.id}','تم')">تم ✔</button>${isNext ? ((mgr || b.by === S.me.name) ? `<button class="x" onclick="delBudget('${b.id}')">✕</button>` : '') : `<button class="mini" style="background:var(--r)" onclick="setBudget('${b.id}','ملغي')">إلغاء</button>`}`;
       if (!isNext && !isCur && st) act = `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span>`;
       return `<tr style="${off ? 'opacity:.5;text-decoration:line-through' : ''}"><td>${esc(b.item)}
         <div class="muted">${esc(b.category)} · ${esc(b.by)}</div>
