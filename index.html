@@ -49,6 +49,7 @@ table{width:100%;border-collapse:collapse}
 th,td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;font-size:14px;vertical-align:top}
 th{color:var(--m);font-weight:600}
 .reply{background:var(--g2);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
+.mini{border:0;border-radius:6px;padding:4px 9px;font:inherit;font-size:13px;color:#fff;cursor:pointer;margin:2px}.mini.l{background:#eef2ed;color:var(--t)}
 .x{background:none;border:0;color:var(--r);cursor:pointer;font-size:16px}
 #login{max-width:340px;margin:12vh auto;text-align:center;padding:20px}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:9;max-width:90vw}
@@ -114,8 +115,9 @@ function localApply(a, d){
   if (a === 'addOrder') S.orders.push({ id: tmp, created: nowStr(), to: d.to, text: d.text, due: d.due, status: 'لسه', doneAt: '', note: '' });
   if (a === 'doneOrder') Object.assign(f(S.orders, d.id), { status: 'تم', doneAt: nowStr() + ' · ' + me, note: d.note });
   if (a === 'delOrder') rm('orders', d.id);
-  if (a === 'addBudget') S.budget.push({ id: tmp, month: d.month, item: d.item, category: d.category, amount: Number(d.amount), by: me });
+  if (a === 'addBudget') S.budget.push({ id: tmp, month: d.month, item: d.item, category: d.category, amount: Number(d.amount), by: me, status: '', from: '' });
   if (a === 'delBudget') rm('budget', d.id);
+  if (a === 'setBudget') Object.assign(f(S.budget, d.id), { status: d.status });
   if (a === 'addUser') {
     if (S.users.some(u => u.phone === d.phone)) throw new Error('الرقم ده متسجل قبل كده');
     if (S.users.some(u => u.name === d.name)) throw new Error('الاسم ده متسجل قبل كده');
@@ -355,38 +357,57 @@ function delOrder(id){ if (confirm('تحذف الأمر ده؟')) run('delOrder'
 
 /* ===================== البادجيت ===================== */
 function budView(){
-  const m = S.months[BMONTH], open = BMONTH === 'next';
-  const items = S.budget.filter(b => b.month === m);
-  const tot = items.reduce((a, b) => a + (Number(b.amount) || 0), 0);
-  const byCat = {};
-  items.forEach(b => byCat[b.category] = (byCat[b.category] || 0) + (Number(b.amount) || 0));
+  const M = S.months, m = M[BMONTH] || M.next;
+  const isNext = BMONTH === 'next', isCur = BMONTH === 'current';
   const mgr = S.me.role === 'manager';
+  const items = S.budget.filter(b => b.month === m);
+  const active = items.filter(b => b.status !== 'ملغي');
+  const sum = l => l.reduce((a, b) => a + (Number(b.amount) || 0), 0);
+  const tot = sum(active), done = sum(active.filter(b => b.status === 'تم')), left = tot - done;
+  const pct = tot ? Math.round(done / tot * 100) : 0;
+  const byCat = {};
+  active.forEach(b => byCat[b.category] = (byCat[b.category] || 0) + (Number(b.amount) || 0));
 
-  let h = `<div class="chips">
-    <button class="chip ${open ? 'on' : ''}" onclick="BMONTH='next';render()">${monthName(S.months.next)} · مفتوح</button>
-    <button class="chip ${!open ? 'on' : ''}" onclick="BMONTH='current';render()">${monthName(S.months.current)} · مقفول</button></div>`;
+  const chips = [['next', monthName(M.next) + ' · تخطيط'], ['current', monthName(M.current) + ' · تنفيذ']];
+  if (M.prev) chips.push(['prev', monthName(M.prev) + ' · اتقفل']);
+  let h = `<div class="chips">${chips.map(([k, t]) => `<button class="chip ${BMONTH === k ? 'on' : ''}" onclick="BMONTH='${k}';render()">${t}</button>`).join('')}</div>`;
 
-  h += `<div class="card"><div class="row"><h3 style="margin:0">بادجيت ${monthName(m)}</h3>
-    <span class="tag ${open ? 't-b' : 't-g'}">${open ? 'مفتوح' : 'مقفول'}</span></div>
+  const tag = isNext ? ['t-b', 'مفتوح للإضافة'] : isCur ? ['t-or', 'شغال'] : ['t-g', 'اتقفل'];
+  h += `<div class="card"><div class="row"><h3 style="margin:0">بادجيت ${monthName(m)}</h3><span class="tag ${tag[0]}">${tag[1]}</span></div>
     <div style="font-size:26px;font-weight:700;margin:8px 0">${num(tot)} <span class="muted">جنيه</span></div>
-    ${Object.keys(byCat).length ? `<div class="chips" style="margin:0">${Object.entries(byCat).sort((a, b) => b[1] - a[1])
+    ${!isNext && tot ? `<div style="background:#eef2ed;border-radius:6px;height:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>
+      <div class="row muted" style="margin-top:6px"><span>✔ اتنفذ ${num(done)}</span><span>⏳ باقي ${num(left)}</span></div>` : ''}
+    ${Object.keys(byCat).length ? `<div class="chips" style="margin:8px 0 0">${Object.entries(byCat).sort((a, b) => b[1] - a[1])
       .map(([c, v]) => `<span class="chip" style="cursor:default">${esc(c)}: ${num(v)}</span>`).join('')}</div>` : ''}</div>`;
 
-  if (open) {
+  if (isNext) {
     h += `<div class="card"><h3>➕ بند جديد</h3><input id="b_i" placeholder="البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)">
       <div class="grid2"><select id="b_c">${BCATS.map(c => `<option>${c}</option>`).join('')}</select>
       <input id="b_a" type="number" min="0" inputmode="numeric" placeholder="المبلغ"></div>
       <button class="btn full" onclick="addBudget()">إضافة</button></div>`;
   }
 
-  if (!items.length) return h + `<div class="empty">مفيش بنود لسه</div>`;
-  h += `<div class="card"><table><tr><th>البند</th><th>المبلغ</th><th>أضافه</th><th></th></tr>
-    ${items.map(b => `<tr><td>${esc(b.item)}<div class="muted">${esc(b.category)}</div></td><td>${num(b.amount)}</td><td class="muted">${esc(b.by)}</td>
-      <td>${open && (mgr || b.by === S.me.name) ? `<button class="x" onclick="delBudget('${b.id}')">✕</button>` : ''}</td></tr>`).join('')}
-    <tr><th>الإجمالي</th><th>${num(tot)}</th><th></th><th></th></tr></table></div>`;
-  if (open) h += `<div class="muted" style="text-align:center">بادجيت ${monthName(S.months.next)} بيتقفل لما الشهر يبدأ، وساعتها بيتفتح اللي بعده</div>`;
+  if (!items.length) return h + `<div class="empty">مفيش بنود</div>`;
+  const order = { '': 0, 'تم': 1, 'ملغي': 2 };
+  const rows = [...items].sort((a, b) => (order[a.status || ''] || 0) - (order[b.status || ''] || 0));
+  h += `<div class="card"><table><tr><th>البند</th><th>المبلغ</th><th></th></tr>
+    ${rows.map(b => {
+      const st = b.status || '', off = st === 'ملغي';
+      let act = '';
+      if (isNext && (mgr || b.by === S.me.name)) act = `<button class="x" onclick="delBudget('${b.id}')">✕</button>`;
+      if (isCur) act = st ? `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span><br><button class="mini l" onclick="setBudget('${b.id}','')">رجوع</button>`
+        : `<button class="mini" style="background:var(--ok)" onclick="setBudget('${b.id}','تم')">تم ✔</button><button class="mini" style="background:var(--r)" onclick="setBudget('${b.id}','ملغي')">إلغاء</button>`;
+      if (!isNext && !isCur && st) act = `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span>`;
+      return `<tr style="${off ? 'opacity:.5;text-decoration:line-through' : ''}"><td>${esc(b.item)}
+        <div class="muted">${esc(b.category)} · ${esc(b.by)}</div>
+        ${b.from ? `<div class="muted" style="color:var(--o)">↪ مترحل من ${monthName(b.from)}</div>` : ''}</td>
+        <td>${num(b.amount)}</td><td style="text-align:left;white-space:nowrap">${act}</td></tr>`;
+    }).join('')}
+    <tr><th>الإجمالي</th><th>${num(tot)}</th><th></th></tr></table></div>`;
+  if (isNext || isCur) h += `<div class="muted" style="text-align:center">أي بند ميتعلمش عليه "تم" أو "إلغاء" لحد آخر الشهر، بيترحل لوحده للشهر اللي بعده</div>`;
   return h;
 }
+function setBudget(id, status){ run('setBudget', { id, status }, status === 'تم' ? 'اتنفذ ✔' : status === 'ملغي' ? 'اتلغى' : 'رجع'); }
 function addBudget(){
   const item = val('b_i'), amount = val('b_a');
   if (!item) return toast('اكتب البند'); if (!(Number(amount) > 0)) return toast('اكتب المبلغ');
@@ -400,7 +421,9 @@ function sumView(){
   const today = S.work.filter(w => w.date === td), tomo = S.work.filter(w => w.date === tm);
   const c = s => today.filter(w => w.status === s).length;
   const men = l => l.reduce((a, w) => a + (Number(w.workers) || 0), 0);
-  const nextBud = S.budget.filter(b => b.month === S.months.next).reduce((a, b) => a + (Number(b.amount) || 0), 0);
+  const nextBud = S.budget.filter(b => b.month === S.months.next && b.status !== 'ملغي').reduce((a, b) => a + (Number(b.amount) || 0), 0);
+  const curL = S.budget.filter(b => b.month === S.months.current && b.status !== 'ملغي');
+  const curTot = curL.reduce((a, b) => a + (Number(b.amount) || 0), 0), curDone = curL.filter(b => b.status === 'تم').reduce((a, b) => a + (Number(b.amount) || 0), 0);
   const openO = S.orders.filter(o => o.status !== 'تم');
   const late = openO.filter(o => o.due && o.due < td).length;
 
@@ -416,7 +439,8 @@ function sumView(){
     <div class="card" onclick="goTab('الطلبات')" style="cursor:pointer"><div class="row"><span>⏳ طلبات مستنية ردك</span><b>${pendingReqs()}</b></div></div>
     <div class="card" onclick="goTab('الأوامر')" style="cursor:pointer"><div class="row"><span>📌 أوامر لسه مخلصتش</span><b>${openO.length}${late ? ` <span class="tag t-red">${late} متأخر</span>` : ''}</b></div></div>
     <div class="card" onclick="DAY='${tm}';goTab('الشغل')" style="cursor:pointer"><div class="row"><span>📅 شغل بكره</span><b>${tomo.length} شغلانة · ${men(tomo)} عمالة باليومية</b></div></div>
-    <div class="card" onclick="BMONTH='next';goTab('البادجيت')" style="cursor:pointer"><div class="row"><span>💰 بادجيت ${monthName(S.months.next)}</span><b>${num(nextBud)} جنيه</b></div></div>`;
+    <div class="card" onclick="BMONTH='current';goTab('البادجيت')" style="cursor:pointer"><div class="row"><span>💰 بادجيت ${monthName(S.months.current)}</span><b>اتنفذ ${num(curDone)} من ${num(curTot)}</b></div></div>
+    <div class="card" onclick="BMONTH='next';goTab('البادجيت')" style="cursor:pointer"><div class="row"><span>📝 بادجيت ${monthName(S.months.next)} (تخطيط)</span><b>${num(nextBud)} جنيه</b></div></div>`;
   return h;
 }
 
