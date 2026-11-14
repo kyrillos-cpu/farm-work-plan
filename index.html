@@ -9,8 +9,9 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2e6b3a">
 <meta name="apple-mobile-web-app-title" content="Farm Work Plan">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://script.google.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--g:#2e6b3a;--g2:#e8f1e6;--bg:#f4f7f3;--t:#1f2a22;--m:#6b776d;--r:#c0392b;--o:#e08a1e;--b:#2f7bbf;--ok:#27964f;--line:#e3e9e1}
 *{box-sizing:border-box}
@@ -99,14 +100,46 @@ async function api(action, data){
   if (!j.ok) throw new Error(j.error);
   return j.data;
 }
-async function run(action, data, msg){
-  if (busy) return; busy = true;
-  try { S = await api(action, data); render(); if (msg) toast(msg); }
-  catch (e) { toast('⚠ ' + e.message); }
-  finally { busy = false; }
+/* ===== الحفظ السريع: التغيير بيظهر فوراً والحفظ بيكمل في الخلفية ===== */
+let QUEUE = Promise.resolve(), INFLIGHT = 0;
+function saveCache(){ try { localStorage.setItem('fwp_cache', JSON.stringify({ pin: PIN, S })); } catch (e) {} }
+function nowStr(){ const d = new Date(); return ymd(d) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+function localApply(a, d){
+  const tmp = 'tmp' + Date.now(), me = S.me.name, f = (l, id) => l.find(x => x.id === id) || {}, rm = (k, id) => S[k] = S[k].filter(x => x.id !== id);
+  if (a === 'addWork') S.work.push({ id: tmp, date: d.date, task: d.task, hosha: d.hosha, workers: Number(d.workers) || 0, notes: d.notes, by: me, status: 'لسه', names: '', sup: d.sup });
+  if (a === 'updWork') Object.assign(f(S.work, d.id), { status: d.status, names: d.names });
+  if (a === 'delWork') rm('work', d.id);
+  if (a === 'addReq') S.requests.push({ id: tmp, created: nowStr(), type: d.type, details: d.details, by: me, status: 'مستني', reply: '' });
+  if (a === 'replyReq') Object.assign(f(S.requests, d.id), { status: d.status, reply: d.reply });
+  if (a === 'addOrder') S.orders.push({ id: tmp, created: nowStr(), to: d.to, text: d.text, due: d.due, status: 'لسه', doneAt: '', note: '' });
+  if (a === 'doneOrder') Object.assign(f(S.orders, d.id), { status: 'تم', doneAt: nowStr() + ' · ' + me, note: d.note });
+  if (a === 'delOrder') rm('orders', d.id);
+  if (a === 'addBudget') S.budget.push({ id: tmp, month: d.month, item: d.item, category: d.category, amount: Number(d.amount), by: me });
+  if (a === 'delBudget') rm('budget', d.id);
+  if (a === 'addUser') {
+    if (S.users.some(u => u.phone === d.phone)) throw new Error('الرقم ده متسجل قبل كده');
+    if (S.users.some(u => u.name === d.name)) throw new Error('الاسم ده متسجل قبل كده');
+    S.users.push({ name: d.name, phone: d.phone, role: d.role });
+  }
+  if (a === 'delUser') S.users = S.users.filter(u => u.phone !== d.phone);
+}
+function run(action, data, msg){
+  if (data && String(data.id || '').indexOf('tmp') === 0) return toast('استنى ثانية لحد ما يتحفظ');
+  try { localApply(action, data); } catch (e) { return toast('⚠ ' + e.message); }
+  INFLIGHT++; render(); saveCache(); if (msg) toast(msg);
+  QUEUE = QUEUE.then(() => api(action, data)).then(d => {
+    INFLIGHT--;
+    if (INFLIGHT === 0) { S = d; saveCache(); }
+    render(true);
+  }).catch(e => {
+    INFLIGHT--; toast('⚠ متحفظش: ' + e.message);
+    if (INFLIGHT === 0) refresh(true); else render(true);
+  });
 }
 async function refresh(silent){
-  try { S = await api('load'); render(); if (!silent) toast('اتحدث ✔'); }
+  if (INFLIGHT) return;
+  if (!silent) toast('بيتحدث…');
+  try { const d = await api('load'); if (INFLIGHT) return; S = d; saveCache(); render(true); if (!silent) toast('اتحدث ✔'); }
   catch (e) { if (!silent) toast('⚠ ' + e.message); }
 }
 
@@ -123,11 +156,12 @@ async function doLogin(){
   try {
     S = await api('load');
     try { localStorage.setItem('fwp_phone', PIN); } catch (e) {}
+    saveCache();
     TAB = 0; DAY = null; render();
   } catch (e) { toast('⚠ ' + e.message); }
 }
 function logout(){
-  try { localStorage.removeItem('fwp_phone'); } catch (e) {}
+  try { localStorage.removeItem('fwp_phone'); localStorage.removeItem('fwp_cache'); } catch (e) {}
   PIN = ''; S = null; loginView();
 }
 
@@ -140,18 +174,21 @@ const TABS = {
   supervisor:[['الشغل', workView, openOrders]]
 };
 function goTab(name){ TAB = Math.max(0, TABS[S.me.role].findIndex(t => t[0] === name)); render(); scrollTo(0, 0); }
-function render(){
+function render(keep){
+  const kept = {};
+  if (keep) document.querySelectorAll('main input[id], main textarea[id], main select[id]').forEach(e => kept[e.id] = e.value);
   const tabs = TABS[S.me.role];
   if (!tabs) { $('#app').innerHTML = '<div class="empty">الدور ده مش متعرف في شيت Users</div>'; return; }
   if (TAB >= tabs.length) TAB = 0;
   const y = window.scrollY;
   $('#app').innerHTML = `<div class="top"><header>
-      <div><b style="display:inline-flex;align-items:center;gap:6px"><img src="icon.svg" alt="" style="width:26px;height:26px;border-radius:7px">Farm Work Plan</b><br><small>${esc(S.me.name)}</small></div>
+      <div><b style="display:inline-flex;align-items:center;gap:6px"><img src="icon.svg" alt="" style="width:26px;height:26px;border-radius:7px">Farm Work Plan</b><br><small>${esc(S.me.name)}${INFLIGHT ? ' · ⏳ بيتحفظ…' : ''}</small></div>
       <div><button class="hbtn" onclick="refresh()">↻ تحديث</button> <button class="hbtn" onclick="logout()">خروج</button></div>
     </header>
     ${tabs.length > 1 ? `<nav>${tabs.map((t, i) => { const n = t[2] ? t[2]() : 0;
       return `<button class="${i === TAB ? 'on' : ''}" onclick="TAB=${i};render();scrollTo(0,0)">${t[0]}${n ? `<span class="badge">${n}</span>` : ''}</button>`; }).join('')}</nav>` : ''}
     </div><main>${tabs[TAB][1]()}</main>`;
+  Object.keys(kept).forEach(id => { const e = document.getElementById(id); if (e) e.value = kept[id]; });
   window.scrollTo(0, y);
 }
 
@@ -409,7 +446,11 @@ function usersView(){
 }
 function drawQR(){
   const el = document.getElementById('qr');
-  if (!el || !window.QRCode) return;
+  if (!el) return;
+  if (!window.QRCode) {
+    if (!window._qrLoading) { window._qrLoading = 1; const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'; s.onload = drawQR; document.head.appendChild(s); }
+    return;
+  }
   el.innerHTML = '';
   new QRCode(el, { text: appLink(), width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
 }
@@ -430,13 +471,16 @@ function formDirty(){
   return [...document.querySelectorAll('main input, main textarea')].some(e => e.type !== 'date' && e.value !== e.defaultValue);
 }
 setInterval(() => {
-  if (S && !busy && document.visibilityState === 'visible' && !formDirty()) refresh(true);
+  if (S && document.visibilityState === 'visible') refresh(true);
 }, 60000);
+document.addEventListener('visibilitychange', () => { if (S && document.visibilityState === 'visible') refresh(true); });
 
 /* ===================== البداية ===================== */
-if (PIN) {
-  api('load').then(d => { S = d; render(); }).catch(() => loginView());
-} else loginView();
+let cached = null;
+try { cached = JSON.parse(localStorage.getItem('fwp_cache') || 'null'); } catch (e) {}
+if (PIN && cached && cached.pin === PIN && cached.S) { S = cached.S; render(); refresh(true); }
+else if (PIN) { api('load').then(d => { S = d; saveCache(); render(); }).catch(() => loginView()); }
+else loginView();
 </script>
 </body>
 </html>
