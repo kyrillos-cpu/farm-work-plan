@@ -130,10 +130,11 @@ function logout(){
 const pendingReqs = () => S.requests.filter(r => r.status === 'مستني').length;
 const openOrders  = () => S.orders.filter(o => o.status !== 'تم').length;
 const TABS = {
-  manager:   [['الطلبات', reqView, pendingReqs], ['الأوامر', ordView], ['الشغل', workView], ['البادجيت', budView], ['الملخص', sumView], ['التسجيل', usersView]],
+  manager:   [['الرئيسية', sumView], ['الطلبات', reqView, pendingReqs], ['الأوامر', ordView], ['الشغل', workView], ['البادجيت', budView], ['التسجيل', usersView]],
   engineer:  [['الشغل', workView], ['طلباتي', reqView], ['مطلوب مني', ordView, openOrders], ['البادجيت', budView]],
   supervisor:[['الشغل', workView, openOrders]]
 };
+function goTab(name){ TAB = Math.max(0, TABS[S.me.role].findIndex(t => t[0] === name)); render(); scrollTo(0, 0); }
 function render(){
   const tabs = TABS[S.me.role];
   if (!tabs) { $('#app').innerHTML = '<div class="empty">الدور ده مش متعرف في شيت Users</div>'; return; }
@@ -355,7 +356,8 @@ function sumView(){
   const openO = S.orders.filter(o => o.status !== 'تم');
   const late = openO.filter(o => o.due && o.due < td).length;
 
-  let h = `<div class="sec">شغل النهارده (عمالة باليومية: ${men(today)})</div>
+  let h = `<div class="card" style="background:var(--g2);border-color:#cfe0cc"><b>أهلاً ${esc(S.me.name)} 👋</b><div class="muted">${new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
+    <div class="sec">شغل النهارده (عمالة باليومية: ${men(today)})</div>
     <div class="stats"><div class="stat"><b style="color:var(--ok)">${c('تم')}</b>خلص</div>
     <div class="stat"><b style="color:var(--o)">${c('شغال')}</b>شغال</div>
     <div class="stat"><b style="color:var(--r)">${c('لسه')}</b>لسه</div></div>`;
@@ -363,10 +365,10 @@ function sumView(){
   if (notDone.length) h += notDone.map(workCard).join('');
 
   h += `<div class="sec">نظرة سريعة</div>
-    <div class="card" onclick="TAB=0;render()" style="cursor:pointer"><div class="row"><span>⏳ طلبات مستنية ردك</span><b>${pendingReqs()}</b></div></div>
-    <div class="card" onclick="TAB=1;render()" style="cursor:pointer"><div class="row"><span>📌 أوامر لسه مخلصتش</span><b>${openO.length}${late ? ` <span class="tag t-red">${late} متأخر</span>` : ''}</b></div></div>
-    <div class="card" onclick="DAY='${tm}';TAB=2;render()" style="cursor:pointer"><div class="row"><span>📅 شغل بكره</span><b>${tomo.length} شغلانة · ${men(tomo)} عمالة باليومية</b></div></div>
-    <div class="card" onclick="BMONTH='next';TAB=3;render()" style="cursor:pointer"><div class="row"><span>💰 بادجيت ${monthName(S.months.next)}</span><b>${num(nextBud)} جنيه</b></div></div>`;
+    <div class="card" onclick="goTab('الطلبات')" style="cursor:pointer"><div class="row"><span>⏳ طلبات مستنية ردك</span><b>${pendingReqs()}</b></div></div>
+    <div class="card" onclick="goTab('الأوامر')" style="cursor:pointer"><div class="row"><span>📌 أوامر لسه مخلصتش</span><b>${openO.length}${late ? ` <span class="tag t-red">${late} متأخر</span>` : ''}</b></div></div>
+    <div class="card" onclick="DAY='${tm}';goTab('الشغل')" style="cursor:pointer"><div class="row"><span>📅 شغل بكره</span><b>${tomo.length} شغلانة · ${men(tomo)} عمالة باليومية</b></div></div>
+    <div class="card" onclick="BMONTH='next';goTab('البادجيت')" style="cursor:pointer"><div class="row"><span>💰 بادجيت ${monthName(S.months.next)}</span><b>${num(nextBud)} جنيه</b></div></div>`;
   return h;
 }
 
