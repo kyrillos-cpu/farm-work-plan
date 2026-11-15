@@ -46,7 +46,7 @@ h3{margin:2px 0 8px;font-size:16px}
 .stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center;font-size:13px;color:var(--m)}
 .stat b{display:block;font-size:24px;color:var(--t)}
 table{width:100%;border-collapse:collapse}
-th,td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:right;font-size:14px;vertical-align:top}
+th,td{padding:8px 4px;border-bottom:1px solid var(--line);text-align:start;font-size:14px;vertical-align:top}
 th{color:var(--m);font-weight:600}
 .reply{background:var(--g2);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
 .mini{border:0;border-radius:6px;padding:4px 9px;font:inherit;font-size:13px;color:#fff;cursor:pointer;margin:2px}.mini.l{background:#eef2ed;color:var(--t)}
@@ -80,9 +80,29 @@ let LTYPE = 'يومية';
 let PIN = '', S = null, TAB = 0, DAY = null, BMONTH = 'next', busy = false;
 try { PIN = localStorage.getItem('fwp_phone') || ''; } catch (e) {}
 
+/* ===================== اللغة (عربي / English) ===================== */
+let LANG = 'ar';
+try { LANG = localStorage.getItem('fwp_lang') || 'ar'; } catch (e) {}
+const EN = {"يناير": "January", "فبراير": "February", "مارس": "March", "أبريل": "April", "مايو": "May", "يونيو": "June", "يوليو": "July", "أغسطس": "August", "سبتمبر": "September", "أكتوبر": "October", "نوفمبر": "November", "ديسمبر": "December", "شراء": "Purchase", "برنامج زراعي": "Agri program", "استفسار": "Question", "احتياج": "Need", "مستني": "Pending", "موافق": "Approved", "مرفوض": "Rejected", "اترد": "Replied", "لسه": "To do", "شغال": "In progress", "تم": "Done", "ملغي": "Cancelled", "سماد": "Fertilizer", "مبيدات": "Pesticides", "خامات": "Materials", "عمالة": "Labor", "صيانة": "Maintenance", "وقود": "Fuel", "أخرى": "Other", "النهارده": "Today", "بكره": "Tomorrow", "امبارح": "Yesterday", "لسه ماحطيتش رابط الـ Apps Script في الملف": "Apps Script link not set in the file", "الرقم ده متسجل قبل كده": "This number is already registered", "الاسم ده متسجل قبل كده": "This name is already registered", "استنى ثانية لحد ما يتحفظ": "Wait a second until it saves", "متحفظش": "Not saved", "بيتحدث…": "Refreshing…", "اتحدث ✔": "Refreshed ✔", "رقم الموبايل": "Mobile number", "دخول": "Log in", "اكتب رقم الموبايل": "Enter the mobile number", "الكل": "Everyone", "الرئيسية": "Home", "الطلبات": "Requests", "الأوامر": "Orders", "الشغل": "Work", "البادجيت": "Budget", "التسجيل": "Team", "طلباتي": "My requests", "مطلوب مني": "My tasks", "الدور ده مش متعرف في شيت Users": "Unknown role in the Users sheet", "بيتحفظ…": "Saving…", "تحديث": "Refresh", "خروج": "Log out", "أوامر لسه مخلصتش": "Open orders", "أوامر ليك": "Your orders", "أوامر للمشرفين": "Supervisor orders", "شغلانة": "jobs", "عمالة باليومية": "Daily labor", "عمالة ثابتة": "Permanent labor", "خلص": "Done", "إضافة شغلانة لـ": "Add a job for", "الشغلانة (تقليم، تعشيب، رش…)": "Job (pruning, weeding, spraying…)", "الحوشة": "Plot", "العدد": "Count", "أي مشرف": "Any supervisor", "ملاحظة (اختياري)": "Note (optional)", "إضافة": "Add", "مفيش شغل متسجل لـ": "No work planned for", "محتاج حاجة؟": "Need something?", "اكتب الاحتياج (عمالة باليومية زيادة، أدوات، خامات…)": "Describe the need (extra daily labor, tools, materials…)", "إرسال": "Send", "من": "by", "المشرف": "Supervisor", "الرجالة": "Workers", "أسماء الرجالة (اختياري)": "Workers' names (optional)", "بدأنا": "Started", "رجّعها شغال": "Back to in progress", "حذف": "Delete", "اكتب الشغلانة": "Enter the job", "اتضافت ✔": "Added ✔", "تمام ✔": "Done ✔", "اتسجل": "Saved", "تحذف الشغلانة دي؟": "Delete this job?", "اتحذفت": "Deleted", "طلب جديد": "New request", "التفاصيل: الصنف والكمية، أو المحصول اللي محتاج له برنامج، أو عدد العمالة…": "Details: item and quantity, crop needing a program, or number of workers…", "مفيش طلبات لسه": "No requests yet", "ردك": "your reply", "الرد": "a reply", "مستني ردك": "Waiting for your reply", "مستني الرد": "Waiting for a reply", "اتعمل عليها": "Handled", "رد أو توجيه (اختياري مع الموافقة)": "Reply or instructions (optional when approving)", "رد": "Reply", "رفض": "Reject", "اكتب التفاصيل": "Enter the details", "اتبعت ✔": "Sent ✔", "اكتب الرد الأول": "Write the reply first", "أمر جديد": "New order", "المطلوب": "What is needed", "آخر ميعاد (اختياري)": "Deadline (optional)", "مفيش أوامر لسه": "No orders yet", "مفيش حاجة مطلوبة منك دلوقتي": "Nothing assigned to you right now", "خلصت ✔": "Done ✔", "خلصت": "Done", "من المدير": "From the manager", "متأخر": "Late", "آخر ميعاد": "Deadline", "اكتب المطلوب": "Enter what is needed", "تحذف الأمر ده؟": "Delete this order?", "اتحذف": "Deleted", "تخطيط": "Planning", "تنفيذ": "In execution", "اتقفل": "Closed", "مفتوح للإضافة": "Open for additions", "بادجيت": "Budget", "جنيه": "EGP", "اتنفذ": "Spent", "باقي": "Remaining", "بند جديد": "New item", "البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)": "Item (e.g. 20 bags potassium sulfate)", "المبلغ": "Amount", "مفيش بنود": "No items", "البند": "Item", "رجوع": "Undo", "إلغاء": "Cancel", "مترحل من": "Carried over from", "الإجمالي": "Total", "أي بند ميتعلمش عليه \"تم\" أو \"إلغاء\" لحد آخر الشهر، بيترحل لوحده للشهر اللي بعده": "Any item not marked \"Done\" or \"Cancel\" by month end carries over to the next month automatically", "اتنفذ ✔": "Done ✔", "اتلغى": "Cancelled", "رجع": "Undone", "اكتب البند": "Enter the item", "اكتب المبلغ": "Enter the amount", "اتضاف ✔": "Added ✔", "تحذف البند ده؟": "Delete this item?", "أهلاً": "Hello", "شغل النهارده": "Today's work", "نظرة سريعة": "At a glance", "طلبات مستنية ردك": "Requests waiting for you", "شغل بكره": "Tomorrow's work", "تسجيل جديد": "Register someone", "الاسم": "Name", "رقم الموبايل (ده اللي هيدخل بيه)": "Mobile number (used to log in)", "مهندس تنفيذي": "Field engineer", "مشرف عمالة": "Labor supervisor", "تسجيل": "Register", "المهندسين التنفيذيين": "Field engineers", "مشرفين العمالة": "Labor supervisors", "مفيش حد متسجل لسه": "Nobody registered yet", "لينك وQR واحد للكل": "One link & QR for everyone", "نسخ اللينك": "Copy link", "كل واحد يفتح اللينك ويكتب رقم موبايله بس": "Everyone opens the link and enters their mobile number", "اتنسخ ✔": "Copied ✔", "انسخه من فوق": "Copy it from above", "اكتب الاسم": "Enter the name", "اكتب رقم موبايل صح": "Enter a valid mobile number", "تحذف الشخص ده؟ مش هيقدر يدخل تاني": "Delete this person? They will no longer be able to log in", "اتسجل ✔": "Registered ✔", "الرقم ده مش متسجل": "This number is not registered", "مش مسموح": "Not allowed", "البادجيت ده مقفول": "This budget is closed", "البادجيت ده اتقفل": "This budget is closed", "مش لاقي البند ده، اعمل تحديث": "Item not found, please refresh", "اكتب رقم موبايلك في MANAGER_PHONE فوق الأول": "Set MANAGER_PHONE first", "حالة غلط": "Invalid status", "أمر مش معروف": "Unknown action", "اختار اليوم": "Choose a day", "اختار الشخص": "Choose a person", "اختار الدور": "Choose a role", "مش لاقي الرقم ده": "Number not found", "نسخة تجريبية · شوفها كـ:": "Demo · view as:", "المدير": "Manager", "المهندس": "Engineer", "مشرف": "Supervisor"};
+const AR_KEYS = Object.keys(EN).sort((a, b) => b.length - a.length);
+const AR_RE = new RegExp('(?<![\\u0600-\\u06FF])(' + AR_KEYS.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\u0600-\\u06FF])', 'g');
+const D0 = '', D1 = '';
+function tr(s){ return LANG === 'en' ? String(s).replace(AR_RE, m => EN[m] || m) : String(s); }
+function trHTML(html){
+  if (LANG !== 'en') return html.replace(/[]/g, '');
+  html = html.replace(/(\s(?:on\w+|value|id|list|data-\w+|type|style|src|href)="[^"]*")/g, D0 + '$1' + D1);
+  return html.split(/([\s\S]*?)/).map(p => p[0] === D0 ? p.slice(1, -1) : tr(p)).join('').replace(/[]/g, '');
+}
+function applyLang(){
+  document.documentElement.lang = LANG === 'en' ? 'en' : 'ar';
+  document.documentElement.dir = LANG === 'en' ? 'ltr' : 'rtl';
+}
+function setLang(l){ LANG = l; try { localStorage.setItem('fwp_lang', l); } catch (e) {} applyLang(); S ? render() : loginView(); }
+applyLang();
 const $ = s => document.querySelector(s);
 const val = id => { const e = document.getElementById(id); return e ? e.value.trim() : ''; };
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = s => D0 + String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) + D1;
+const escv = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const num = n => (Number(n) || 0).toLocaleString('en-US');
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function addDays(n){ const d = new Date(); d.setDate(d.getDate()+n); return ymd(d); }
@@ -93,7 +113,7 @@ function dayName(d){
   if (d === addDays(-1)) return 'امبارح';
   return d;
 }
-function toast(m){ const t = $('#toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 2600); }
+function toast(m){ const t = $('#toast'); t.textContent = tr(m); t.style.display = 'block'; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = 'none', 2600); }
 
 async function api(action, data){
   if (API_URL.indexOf('PASTE_') === 0) throw new Error('لسه ماحطيتش رابط الـ Apps Script في الملف');
@@ -148,10 +168,10 @@ async function refresh(silent){
 
 /* ===================== الدخول ===================== */
 function loginView(){
-  $('#app').innerHTML = `<div id="login">
+  $('#app').innerHTML = trHTML(`<div id="login">
     <img src="icon.svg" alt="" style="width:96px;height:96px;border-radius:24px;box-shadow:0 4px 14px #0002"><h2 style="margin:6px 0 18px">Farm Work Plan</h2>
     <input id="pin" type="tel" inputmode="numeric" dir="ltr" style="text-align:center" placeholder="رقم الموبايل" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="btn full" onclick="doLogin()">دخول</button></div>`;
+    <button class="btn full" onclick="doLogin()">دخول</button></div>`);
 }
 async function doLogin(){
   PIN = normPhone(val('pin'));
@@ -182,16 +202,16 @@ function render(keep){
   const kept = {};
   if (keep) document.querySelectorAll('main input[id], main textarea[id], main select[id]').forEach(e => kept[e.id] = e.value);
   const tabs = TABS[S.me.role];
-  if (!tabs) { $('#app').innerHTML = '<div class="empty">الدور ده مش متعرف في شيت Users</div>'; return; }
+  if (!tabs) { $('#app').innerHTML = trHTML('<div class="empty">الدور ده مش متعرف في شيت Users</div>'); return; }
   if (TAB >= tabs.length) TAB = 0;
   const y = window.scrollY;
-  $('#app').innerHTML = `<div class="top"><header>
+  $('#app').innerHTML = trHTML(`<div class="top"><header>
       <div><b style="display:inline-flex;align-items:center;gap:6px"><img src="icon.svg" alt="" style="width:26px;height:26px;border-radius:7px">Farm Work Plan</b><br><small>${esc(S.me.name)}${INFLIGHT ? ' · ⏳ بيتحفظ…' : ''}</small></div>
-      <div><button class="hbtn" onclick="refresh()">↻ تحديث</button> <button class="hbtn" onclick="logout()">خروج</button></div>
+      <div>${S.me.role === 'manager' ? `<button class="hbtn" onclick="setLang(LANG === 'en' ? 'ar' : 'en')">${LANG === 'en' ? 'ع' : 'EN'}</button> ` : ''}<button class="hbtn" onclick="refresh()">↻ تحديث</button> <button class="hbtn" onclick="logout()">خروج</button></div>
     </header>
     ${tabs.length > 1 ? `<nav>${tabs.map((t, i) => { const n = t[2] ? t[2]() : 0;
       return `<button class="${i === TAB ? 'on' : ''}" onclick="TAB=${i};render();scrollTo(0,0)">${t[0]}${n ? `<span class="badge">${n}</span>` : ''}</button>`; }).join('')}</nav>` : ''}
-    </div><main>${tabs[TAB][1]()}</main>`;
+    </div><main>${tabs[TAB][1]()}</main>`);
   Object.keys(kept).forEach(id => { const e = document.getElementById(id); if (e) e.value = kept[id]; });
   window.scrollTo(0, y);
 }
@@ -233,7 +253,7 @@ function workView(){
         <button class="chip ${LTYPE === 'ثابتة' ? 'on' : ''}" onclick="LTYPE='ثابتة';render(true)">عمالة ثابتة</button></div>
       <div class="grid2"><input id="w_hosha" list="hl" placeholder="الحوشة"><input id="w_n" type="number" min="0" inputmode="numeric" placeholder="العدد"></div>
       <datalist id="hl">${hoshas.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
-      <select id="w_sup">${S.users.filter(u => u.role === 'supervisor').map(u => `<option>${esc(u.name)}</option>`).join('')}<option value="">أي مشرف</option></select>
+      <select id="w_sup">${S.users.filter(u => u.role === 'supervisor').map(u => `<option value="${escv(u.name)}">${esc(u.name)}</option>`).join('')}<option value="">أي مشرف</option></select>
       <input id="w_notes" placeholder="ملاحظة (اختياري)">
       <button class="btn full" onclick="addWork()">إضافة</button></details>`;
   }
@@ -252,7 +272,7 @@ function workView(){
 function workCard(w){
   const role = S.me.role;
   let h = `<div class="card"><div class="row"><b>${esc(w.task)}${w.hosha ? ' — ' + esc(w.hosha) : ''}</b>
-    <span class="tag ${WST[w.status] || 't-g'}">${esc(w.status)}</span></div>
+    <span class="tag ${WST[w.status] || 't-g'}">${escv(w.status)}</span></div>
     <div class="muted">👷 ${(w.ltype || 'يومية') === 'يومية' ? 'عمالة باليومية' : 'عمالة ثابتة'}: ${esc(w.workers)} · من ${esc(w.by)}${w.sup ? ' · المشرف: ' + esc(w.sup) : ''}</div>
     ${w.notes ? `<div class="muted">📝 ${esc(w.notes)}</div>` : ''}
     ${w.names ? `<div class="muted">الرجالة: ${esc(w.names)}</div>` : ''}`;
@@ -274,7 +294,7 @@ function addWork(){
   run('addWork', { date: DAY, task, hosha: val('w_hosha'), workers: val('w_n'), ltype: LTYPE, sup: val('w_sup'), notes: val('w_notes') }, 'اتضافت ✔');
 }
 function setWork(id, status){ run('updWork', { id, status, names: val('nm_' + id) }, status === 'تم' ? 'تمام ✔' : 'اتسجل'); }
-function delWork(id){ if (confirm('تحذف الشغلانة دي؟')) run('delWork', { id }, 'اتحذفت'); }
+function delWork(id){ if (confirm(tr('تحذف الشغلانة دي؟'))) run('delWork', { id }, 'اتحذفت'); }
 
 /* ===================== الطلبات ===================== */
 function reqView(){
@@ -282,7 +302,7 @@ function reqView(){
   let h = '';
   if (!mgr) {
     h += `<div class="card"><h3>طلب جديد</h3>
-      <select id="rq_t">${RTYPES.map(t => `<option>${t}</option>`).join('')}</select>
+      <select id="rq_t">${RTYPES.map(t => `<option value="${t}">${t}</option>`).join('')}</select>
       <textarea id="rq_d" placeholder="التفاصيل: الصنف والكمية، أو المحصول اللي محتاج له برنامج، أو عدد العمالة…"></textarea>
       <button class="btn full" onclick="addReq(val('rq_t'),'rq_d')">إرسال</button></div>`;
   }
@@ -296,8 +316,8 @@ function reqView(){
 }
 function reqCard(r){
   const mgr = S.me.role === 'manager';
-  let h = `<div class="card"><div class="row"><b>${RICON[r.type] || '•'} ${esc(r.type)}</b>
-    <span class="tag ${RST[r.status] || 't-g'}">${esc(r.status)}</span></div>
+  let h = `<div class="card"><div class="row"><b>${RICON[r.type] || '•'} ${escv(r.type)}</b>
+    <span class="tag ${RST[r.status] || 't-g'}">${escv(r.status)}</span></div>
     <div style="margin-top:6px;white-space:pre-wrap">${esc(r.details)}</div>
     <div class="muted">${mgr ? 'من ' + esc(r.by) + ' · ' : ''}${esc(r.created)}</div>
     ${r.reply ? `<div class="reply">💬 ${esc(r.reply)}</div>` : ''}`;
@@ -326,7 +346,7 @@ function ordView(){
   if (mgr) {
     const people = S.users.filter(u => u.role !== 'manager');
     h += `<div class="card"><h3>أمر جديد</h3>
-      <select id="o_to">${people.map(u => `<option>${esc(u.name)}</option>`).join('')}<option>الكل</option></select>
+      <select id="o_to">${people.map(u => `<option value="${escv(u.name)}">${esc(u.name)}</option>`).join('')}<option value="الكل">الكل</option></select>
       <textarea id="o_t" placeholder="المطلوب"></textarea>
       <div class="muted">آخر ميعاد (اختياري)</div><input id="o_due" type="date">
       <button class="btn full" onclick="addOrder()">إرسال</button></div>`;
@@ -360,7 +380,7 @@ function addOrder(){
   run('addOrder', { to: val('o_to'), text, due: val('o_due') }, 'اتبعت ✔');
 }
 function doneOrder(id){ run('doneOrder', { id, note: val('on_' + id) }, 'تمام ✔'); }
-function delOrder(id){ if (confirm('تحذف الأمر ده؟')) run('delOrder', { id }, 'اتحذف'); }
+function delOrder(id){ if (confirm(tr('تحذف الأمر ده؟'))) run('delOrder', { id }, 'اتحذف'); }
 
 /* ===================== البادجيت ===================== */
 function budView(){
@@ -385,11 +405,11 @@ function budView(){
     ${(!isNext || done) && tot ? `<div style="background:#eef2ed;border-radius:6px;height:10px;overflow:hidden"><div style="width:${pct}%;height:100%;background:var(--ok)"></div></div>
       <div class="row muted" style="margin-top:6px"><span>✔ اتنفذ ${num(done)}</span><span>⏳ باقي ${num(left)}</span></div>` : ''}
     ${Object.keys(byCat).length ? `<div class="chips" style="margin:8px 0 0">${Object.entries(byCat).sort((a, b) => b[1] - a[1])
-      .map(([c, v]) => `<span class="chip" style="cursor:default">${esc(c)}: ${num(v)}</span>`).join('')}</div>` : ''}</div>`;
+      .map(([c, v]) => `<span class="chip" style="cursor:default">${escv(c)}: ${num(v)}</span>`).join('')}</div>` : ''}</div>`;
 
   if (isNext) {
     h += `<div class="card"><h3>➕ بند جديد</h3><input id="b_i" placeholder="البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)">
-      <div class="grid2"><select id="b_c">${BCATS.map(c => `<option>${c}</option>`).join('')}</select>
+      <div class="grid2"><select id="b_c">${BCATS.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
       <input id="b_a" type="number" min="0" inputmode="numeric" placeholder="المبلغ"></div>
       <button class="btn full" onclick="addBudget()">إضافة</button></div>`;
   }
@@ -405,9 +425,9 @@ function budView(){
         : `<button class="mini" style="background:var(--ok)" onclick="setBudget('${b.id}','تم')">تم ✔</button>${isNext ? ((mgr || b.by === S.me.name) ? `<button class="x" onclick="delBudget('${b.id}')">✕</button>` : '') : `<button class="mini" style="background:var(--r)" onclick="setBudget('${b.id}','ملغي')">إلغاء</button>`}`;
       if (!isNext && !isCur && st) act = `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span>`;
       return `<tr style="${off ? 'opacity:.5;text-decoration:line-through' : ''}"><td>${esc(b.item)}
-        <div class="muted">${esc(b.category)} · ${esc(b.by)}</div>
+        <div class="muted">${escv(b.category)} · ${esc(b.by)}</div>
         ${b.from ? `<div class="muted" style="color:var(--o)">↪ مترحل من ${monthName(b.from)}</div>` : ''}</td>
-        <td>${num(b.amount)}</td><td style="text-align:left;white-space:nowrap">${act}</td></tr>`;
+        <td>${num(b.amount)}</td><td style="text-align:end;white-space:nowrap">${act}</td></tr>`;
     }).join('')}
     <tr><th>الإجمالي</th><th>${num(tot)}</th><th></th></tr></table></div>`;
   if (isNext || isCur) h += `<div class="muted" style="text-align:center">أي بند ميتعلمش عليه "تم" أو "إلغاء" لحد آخر الشهر، بيترحل لوحده للشهر اللي بعده</div>`;
@@ -419,7 +439,7 @@ function addBudget(){
   if (!item) return toast('اكتب البند'); if (!(Number(amount) > 0)) return toast('اكتب المبلغ');
   run('addBudget', { month: S.months.next, item, category: val('b_c'), amount }, 'اتضاف ✔');
 }
-function delBudget(id){ if (confirm('تحذف البند ده؟')) run('delBudget', { id }, 'اتحذف'); }
+function delBudget(id){ if (confirm(tr('تحذف البند ده؟'))) run('delBudget', { id }, 'اتحذف'); }
 
 /* ===================== الملخص (المدير) ===================== */
 function sumView(){
@@ -433,7 +453,7 @@ function sumView(){
   const openO = S.orders.filter(o => o.status !== 'تم');
   const late = openO.filter(o => o.due && o.due < td).length;
 
-  let h = `<div class="card" style="background:var(--g2);border-color:#cfe0cc"><b>أهلاً ${esc(S.me.name)} 👋</b><div class="muted">${new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
+  let h = `<div class="card" style="background:var(--g2);border-color:#cfe0cc"><b>أهلاً ${esc(S.me.name)} 👋</b><div class="muted">${new Date().toLocaleDateString(LANG === 'en' ? 'en-GB' : 'ar-EG', { weekday: 'long', day: 'numeric', month: 'long' })}</div></div>
     <div class="sec">شغل النهارده (عمالة باليومية: ${men(today)})</div>
     <div class="stats"><div class="stat"><b style="color:var(--ok)">${c('تم')}</b>خلص</div>
     <div class="stat"><b style="color:var(--o)">${c('شغال')}</b>شغال</div>
@@ -445,7 +465,7 @@ function sumView(){
     <div class="card" onclick="goTab('الطلبات')" style="cursor:pointer"><div class="row"><span>⏳ طلبات مستنية ردك</span><b>${pendingReqs()}</b></div></div>
     <div class="card" onclick="goTab('الأوامر')" style="cursor:pointer"><div class="row"><span>📌 أوامر لسه مخلصتش</span><b>${openO.length}${late ? ` <span class="tag t-red">${late} متأخر</span>` : ''}</b></div></div>
     <div class="card" onclick="DAY='${tm}';goTab('الشغل')" style="cursor:pointer"><div class="row"><span>📅 شغل بكره</span><b>${tomo.length} شغلانة · ${men(tomo)} عمالة باليومية</b></div></div>
-    <div class="card" onclick="BMONTH='current';goTab('البادجيت')" style="cursor:pointer"><div class="row"><span>💰 بادجيت ${monthName(S.months.current)}</span><b>اتنفذ ${num(curDone)} من ${num(curTot)}</b></div></div>
+    <div class="card" onclick="BMONTH='current';goTab('البادجيت')" style="cursor:pointer"><div class="row"><span>💰 بادجيت ${monthName(S.months.current)}</span><b>اتنفذ ${num(curDone)} / ${num(curTot)}</b></div></div>
     <div class="card" onclick="BMONTH='next';goTab('البادجيت')" style="cursor:pointer"><div class="row"><span>📝 بادجيت ${monthName(S.months.next)} (تخطيط)</span><b>${num(nextBud)} جنيه</b></div></div>`;
   return h;
 }
@@ -500,7 +520,7 @@ function addUser(){
   if (phone.length < 8) return toast('اكتب رقم موبايل صح');
   run('addUser', { name, phone, role: val('u_r') }, 'اتسجل ✔');
 }
-function delUser(phone){ if (confirm('تحذف الشخص ده؟ مش هيقدر يدخل تاني')) run('delUser', { phone }, 'اتحذف'); }
+function delUser(phone){ if (confirm(tr('تحذف الشخص ده؟ مش هيقدر يدخل تاني'))) run('delUser', { phone }, 'اتحذف'); }
 
 /* ===================== تحديث تلقائي ===================== */
 function formDirty(){
