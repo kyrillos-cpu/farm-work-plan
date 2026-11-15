@@ -76,6 +76,7 @@ const RST = {'مستني':'t-or','موافق':'t-ok','مرفوض':'t-red','ات�
 const WST = {'لسه':'t-red','شغال':'t-or','تم':'t-ok'};
 const BCATS = ['سماد','مبيدات','خامات','عمالة','صيانة','وقود','أخرى'];
 
+let LTYPE = 'يومية';
 let PIN = '', S = null, TAB = 0, DAY = null, BMONTH = 'next', busy = false;
 try { PIN = localStorage.getItem('fwp_phone') || ''; } catch (e) {}
 
@@ -107,7 +108,7 @@ function saveCache(){ try { localStorage.setItem('fwp_cache', JSON.stringify({ p
 function nowStr(){ const d = new Date(); return ymd(d) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
 function localApply(a, d){
   const tmp = 'tmp' + Date.now(), me = S.me.name, f = (l, id) => l.find(x => x.id === id) || {}, rm = (k, id) => S[k] = S[k].filter(x => x.id !== id);
-  if (a === 'addWork') S.work.push({ id: tmp, date: d.date, task: d.task, hosha: d.hosha, workers: Number(d.workers) || 0, notes: d.notes, by: me, status: 'لسه', names: '', sup: d.sup });
+  if (a === 'addWork') S.work.push({ id: tmp, date: d.date, task: d.task, hosha: d.hosha, workers: Number(d.workers) || 0, ltype: d.ltype, notes: d.notes, by: me, status: 'لسه', names: '', sup: d.sup });
   if (a === 'updWork') Object.assign(f(S.work, d.id), { status: d.status, names: d.names });
   if (a === 'delWork') rm('work', d.id);
   if (a === 'addReq') S.requests.push({ id: tmp, created: nowStr(), type: d.type, details: d.details, by: me, status: 'مستني', reply: '' });
@@ -200,7 +201,9 @@ function workView(){
   const role = S.me.role;
   if (!DAY) DAY = role === 'engineer' ? addDays(1) : addDays(0);
   const list = S.work.filter(w => w.date === DAY);
-  const tot = list.reduce((a, w) => a + (Number(w.workers) || 0), 0);
+  const isDaily = w => (w.ltype || 'يومية') === 'يومية';
+  const tot = list.filter(isDaily).reduce((a, w) => a + (Number(w.workers) || 0), 0);
+  const fixed = list.filter(w => !isDaily(w)).reduce((a, w) => a + (Number(w.workers) || 0), 0);
   const done = list.filter(w => w.status === 'تم').length;
   const hoshas = [...new Set(S.work.map(w => w.hosha).filter(Boolean))];
   let h = '';
@@ -219,12 +222,16 @@ function workView(){
     <input type="date" value="${DAY}" onchange="DAY=this.value;render()" style="width:auto;margin:0;padding:6px"></div>`;
 
   h += `<div class="stats"><div class="stat"><b>${list.length}</b>شغلانة</div>
-    <div class="stat"><b>${tot}</b>عمالة باليومية</div><div class="stat"><b>${done}/${list.length}</b>خلص</div></div>`;
+    <div class="stat"><b>${tot}</b>عمالة باليومية</div><div class="stat"><b>${done}/${list.length}</b>خلص</div></div>
+    ${fixed ? `<div class="muted" style="text-align:center;margin:-4px 0 10px">+ ${fixed} عمالة ثابتة</div>` : ''}`;
 
   if (role !== 'supervisor') {
     h += `<details class="card" ${role === 'engineer' ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
       <input id="w_task" placeholder="الشغلانة (تقليم، تعشيب، رش…)">
-      <div class="grid2"><input id="w_hosha" list="hl" placeholder="الحوشة"><input id="w_n" type="number" min="0" inputmode="numeric" placeholder="عمالة باليومية (العدد)"></div>
+      <div class="chips" style="margin:6px 0 2px">
+        <button class="chip ${LTYPE === 'يومية' ? 'on' : ''}" onclick="LTYPE='يومية';render(true)">عمالة باليومية</button>
+        <button class="chip ${LTYPE === 'ثابتة' ? 'on' : ''}" onclick="LTYPE='ثابتة';render(true)">عمالة ثابتة</button></div>
+      <div class="grid2"><input id="w_hosha" list="hl" placeholder="الحوشة"><input id="w_n" type="number" min="0" inputmode="numeric" placeholder="العدد"></div>
       <datalist id="hl">${hoshas.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
       <select id="w_sup">${S.users.filter(u => u.role === 'supervisor').map(u => `<option>${esc(u.name)}</option>`).join('')}<option value="">أي مشرف</option></select>
       <input id="w_notes" placeholder="ملاحظة (اختياري)">
@@ -246,7 +253,7 @@ function workCard(w){
   const role = S.me.role;
   let h = `<div class="card"><div class="row"><b>${esc(w.task)}${w.hosha ? ' — ' + esc(w.hosha) : ''}</b>
     <span class="tag ${WST[w.status] || 't-g'}">${esc(w.status)}</span></div>
-    <div class="muted">👷 عمالة باليومية: ${esc(w.workers)} · من ${esc(w.by)}${w.sup ? ' · المشرف: ' + esc(w.sup) : ''}</div>
+    <div class="muted">👷 ${(w.ltype || 'يومية') === 'يومية' ? 'عمالة باليومية' : 'عمالة ثابتة'}: ${esc(w.workers)} · من ${esc(w.by)}${w.sup ? ' · المشرف: ' + esc(w.sup) : ''}</div>
     ${w.notes ? `<div class="muted">📝 ${esc(w.notes)}</div>` : ''}
     ${w.names ? `<div class="muted">الرجالة: ${esc(w.names)}</div>` : ''}`;
   if (role === 'supervisor' && w.status !== 'تم') {
@@ -264,7 +271,7 @@ function workCard(w){
 }
 function addWork(){
   const task = val('w_task'); if (!task) return toast('اكتب الشغلانة');
-  run('addWork', { date: DAY, task, hosha: val('w_hosha'), workers: val('w_n'), sup: val('w_sup'), notes: val('w_notes') }, 'اتضافت ✔');
+  run('addWork', { date: DAY, task, hosha: val('w_hosha'), workers: val('w_n'), ltype: LTYPE, sup: val('w_sup'), notes: val('w_notes') }, 'اتضافت ✔');
 }
 function setWork(id, status){ run('updWork', { id, status, names: val('nm_' + id) }, status === 'تم' ? 'تمام ✔' : 'اتسجل'); }
 function delWork(id){ if (confirm('تحذف الشغلانة دي؟')) run('delWork', { id }, 'اتحذفت'); }
@@ -419,7 +426,7 @@ function sumView(){
   const td = addDays(0), tm = addDays(1);
   const today = S.work.filter(w => w.date === td), tomo = S.work.filter(w => w.date === tm);
   const c = s => today.filter(w => w.status === s).length;
-  const men = l => l.reduce((a, w) => a + (Number(w.workers) || 0), 0);
+  const men = l => l.filter(w => (w.ltype || 'يومية') === 'يومية').reduce((a, w) => a + (Number(w.workers) || 0), 0);
   const nextBud = S.budget.filter(b => b.month === S.months.next && b.status !== 'ملغي').reduce((a, b) => a + (Number(b.amount) || 0), 0);
   const curL = S.budget.filter(b => b.month === S.months.current && b.status !== 'ملغي');
   const curTot = curL.reduce((a, b) => a + (Number(b.amount) || 0), 0), curDone = curL.filter(b => b.status === 'تم').reduce((a, b) => a + (Number(b.amount) || 0), 0);
