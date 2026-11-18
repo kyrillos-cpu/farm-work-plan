@@ -241,7 +241,7 @@ function render(keep){
 }
 
 /* ===================== الربط ببرنامج التسميد والرش ===================== */
-const F = () => (S && S.fert) || {};
+const F = () => ({});  // الربط ببرنامج التسميد اتلغى
 const ST = () => (S && S.settings) || {};
 const KIND = { spray: '🧴 رش', fert: '🌱 تسميد', mech: '🚜 ميكانيكي' };
 function cropArea(c){ return ((F().crops || []).find(x => x.name === c) || {}).area || 0; }
@@ -309,7 +309,6 @@ function workView(){
     <div class="stat"><b>${tot}</b>عمالة باليومية</div><div class="stat"><b>${done}/${list.length}</b>خلص</div></div>
     ${fixed ? `<div class="muted" style="text-align:center;margin:-4px 0 10px">+ ${fixed} عمالة ثابتة</div>` : ''}`;
 
-  h += progSection(DAY);
   if (role !== 'supervisor') {
     const P = PREFILL && PREFILL.date === DAY ? PREFILL : null;
     h += `<details class="card ${P ? 'prog' : ''}" ${role === 'engineer' || P ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
@@ -764,15 +763,6 @@ function sumView(){
   const notDone = today.filter(w => w.status !== 'تم');
   if (notDone.length) h += notDone.map(workCard).join('');
 
-  if (F().linked && !F().error) {
-    const pt = progItems(td), pm = progItems(tm), lt = progLate();
-    const line = p => { const w = srcWork(p.key); return `<div class="row" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span>${KIND[p.kind]} — ${esc(p.crop)}<div class="muted" style="white-space:pre-wrap">${esc(p.task)}</div></span>
-      <span class="tag ${w ? (WST[w.status] || 't-g') : 't-g'}">${w ? escv(w.status) : 'متوزعتش'}</span></div>`; };
-    h += `<div class="sec">📋 رش وتسميد</div><div class="card prog">
-      <b>النهارده</b>${pt.length ? pt.map(line).join('') : '<div class="muted">مفيش</div>'}
-      <b style="display:block;margin-top:10px">بكره</b>${pm.length ? pm.map(line).join('') : '<div class="muted">مفيش</div>'}
-      ${lt.length ? `<b style="display:block;margin-top:10px;color:var(--r)">⚠️ متأخر من البرنامج (${lt.length})</b>${lt.map(p => `<div class="row" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span>${KIND[p.kind]} — ${esc(p.crop)} · ${p.date}<div class="muted" style="white-space:pre-wrap">${esc(p.task)}</div></span></div>`).join('')}` : ''}</div>`;
-  } else if (F().error) h += `<div class="warn">⚠️ الربط ببرنامج التسميد مش شغال: ${esc(F().error)}</div>`;
   h += `<div class="sec">نظرة سريعة</div>
     <div class="card" onclick="goTab('الطلبات')" style="cursor:pointer"><div class="row"><span>⏳ طلبات مستنية ردك</span><b>${pendingReqs()}</b></div></div>
     <div class="card" onclick="goTab('الأوامر')" style="cursor:pointer"><div class="row"><span>📌 أوامر لسه مخلصتش</span><b>${openO.length}${late ? ` <span class="tag t-red">${late} متأخر</span>` : ''}</b></div></div>
@@ -809,7 +799,6 @@ function usersView(){
     <div class="muted" dir="ltr" style="word-break:break-all;margin:8px 0">${esc(appLink())}</div>
     <button class="btn b" onclick="copyLink()">نسخ اللينك</button>
     <div class="muted" style="margin-top:8px">كل واحد يفتح اللينك ويكتب رقم موبايله بس</div></div>`;
-  h += linkCard();
   setTimeout(drawQR, 0);
   return h;
 }
