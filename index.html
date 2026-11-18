@@ -21,7 +21,7 @@ header{background:var(--g);color:#fff;padding:10px 16px;display:flex;justify-con
 header small{opacity:.85}
 .hbtn{background:#ffffff26;color:#fff;border:0;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
 nav{display:flex;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
-nav button{flex:1 1 0;min-width:0;padding:12px 2px;font-size:13.5px;border:0;background:none;font:inherit;color:var(--m);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav button{flex:1 1 0;min-width:0;padding:12px 1px;font-size:12.5px;border:0;background:none;font:inherit;color:var(--m);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
 nav button.on{color:var(--g);border-color:var(--g);font-weight:700}
 .badge{background:var(--r);color:#fff;border-radius:10px;font-size:11px;padding:0 6px;margin-right:4px}
 main{max-width:720px;margin:auto;padding:14px 14px 60px}
@@ -52,6 +52,9 @@ th{color:var(--m);font-weight:600}
 .reply{background:var(--g2);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:14px}
 .mini{border:0;border-radius:6px;padding:4px 9px;font:inherit;font-size:13px;color:#fff;cursor:pointer;margin:2px}.mini.l{background:#eef2ed;color:var(--t)}
 .steps{border-inline-start:3px solid var(--g2);margin:8px 2px 0;padding-inline-start:10px}.step{padding:5px 0;border-bottom:1px dashed var(--line);font-size:14px}.step:last-child{border-bottom:0}
+.warn{background:#fdecea;color:#8a1c12;border:1px solid #f5c2bd;border-radius:8px;padding:7px 10px;margin-top:8px;font-size:13.5px}
+.prog{border-color:#b9d3f0;background:#f5f9fe}
+.pt td,.pt th{font-size:13px}.pt input{padding:4px;margin:0;width:62px;font-size:13px}
 .x{background:none;border:0;color:var(--r);cursor:pointer;font-size:16px}
 #login{max-width:340px;margin:12vh auto;text-align:center;padding:20px}
 #toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 18px;border-radius:10px;display:none;z-index:9;max-width:90vw}
@@ -78,14 +81,14 @@ const RST = {'مستني':'t-or','موافق':'t-ok','مرفوض':'t-red','ات�
 const WST = {'لسه':'t-red','شغال':'t-or','تم':'t-ok'};
 const BCATS = ['سماد','مبيدات','خامات','عمالة','صيانة','وقود','أخرى'];
 
-let LTYPE = 'يومية';
+let LTYPE = 'يومية', PAY = 'يومية', PAYWEEK = 0;
 let PIN = '', S = null, TAB = 0, DAY = null, BMONTH = 'next', busy = false;
 try { PIN = localStorage.getItem('fwp_phone') || ''; } catch (e) {}
 
 /* ===================== اللغة (عربي / English) ===================== */
 let LANG = 'ar';
 try { LANG = localStorage.getItem('fwp_lang') || 'ar'; } catch (e) {}
-const EN = {"يناير": "January", "فبراير": "February", "مارس": "March", "أبريل": "April", "مايو": "May", "يونيو": "June", "يوليو": "July", "أغسطس": "August", "سبتمبر": "September", "أكتوبر": "October", "نوفمبر": "November", "ديسمبر": "December", "شراء": "Purchase", "برنامج زراعي": "Agri program", "استفسار": "Question", "احتياج": "Need", "مستني": "Pending", "موافق": "Approved", "مرفوض": "Rejected", "مرحلة اتعملت أو تعليق…": "Step done or comment…", "↩ رجّعه لسه مخلصش": "↩ Mark as not done", "اكتب المرحلة أو التعليق": "Write the step or comment", "اترد": "Replied", "لسه": "To do", "شغال": "In progress", "تم": "Done", "ملغي": "Cancelled", "سماد": "Fertilizer", "مبيدات": "Pesticides", "خامات": "Materials", "عمالة": "Labor", "صيانة": "Maintenance", "وقود": "Fuel", "أخرى": "Other", "النهارده": "Today", "بكره": "Tomorrow", "امبارح": "Yesterday", "لسه ماحطيتش رابط الـ Apps Script في الملف": "Apps Script link not set in the file", "الرقم ده متسجل قبل كده": "This number is already registered", "الاسم ده متسجل قبل كده": "This name is already registered", "استنى ثانية لحد ما يتحفظ": "Wait a second until it saves", "متحفظش": "Not saved", "بيتحدث…": "Refreshing…", "اتحدث ✔": "Refreshed ✔", "رقم الموبايل": "Mobile number", "دخول": "Log in", "اكتب رقم الموبايل": "Enter the mobile number", "الكل": "Everyone", "الرئيسية": "Home", "الطلبات": "Requests", "الأوامر": "Orders", "الشغل": "Work", "البادجيت": "Budget", "التسجيل": "Team", "طلباتي": "My requests", "مطلوب مني": "My tasks", "الدور ده مش متعرف في شيت Users": "Unknown role in the Users sheet", "بيتحفظ…": "Saving…", "تحديث": "Refresh", "خروج": "Log out", "أوامر لسه مخلصتش": "Open orders", "أوامر ليك": "Your orders", "أوامر للمشرفين": "Supervisor orders", "شغلانة": "jobs", "عمالة باليومية": "Daily labor", "عمالة ثابتة": "Permanent labor", "خلص": "Done", "إضافة شغلانة لـ": "Add a job for", "الشغلانة (تقليم، تعشيب، رش…)": "Job (pruning, weeding, spraying…)", "الحوشة": "Plot", "العدد": "Count", "أي مشرف": "Any supervisor", "ملاحظة (اختياري)": "Note (optional)", "إضافة": "Add", "مفيش شغل متسجل لـ": "No work planned for", "محتاج حاجة؟": "Need something?", "اكتب الاحتياج (عمالة باليومية زيادة، أدوات، خامات…)": "Describe the need (extra daily labor, tools, materials…)", "إرسال": "Send", "من": "by", "المشرف": "Supervisor", "الرجالة": "Workers", "أسماء الرجالة (اختياري)": "Workers' names (optional)", "بدأنا": "Started", "رجّعها شغال": "Back to in progress", "حذف": "Delete", "اكتب الشغلانة": "Enter the job", "اتضافت ✔": "Added ✔", "تمام ✔": "Done ✔", "اتسجل": "Saved", "تحذف الشغلانة دي؟": "Delete this job?", "اتحذفت": "Deleted", "طلب جديد": "New request", "التفاصيل: الصنف والكمية، أو المحصول اللي محتاج له برنامج، أو عدد العمالة…": "Details: item and quantity, crop needing a program, or number of workers…", "مفيش طلبات لسه": "No requests yet", "ردك": "your reply", "الرد": "a reply", "مستني ردك": "Waiting for your reply", "مستني الرد": "Waiting for a reply", "اتعمل عليها": "Handled", "رد أو توجيه (اختياري مع الموافقة)": "Reply or instructions (optional when approving)", "رد": "Reply", "رفض": "Reject", "اكتب التفاصيل": "Enter the details", "اتبعت ✔": "Sent ✔", "اكتب الرد الأول": "Write the reply first", "أمر جديد": "New order", "المطلوب": "What is needed", "آخر ميعاد (اختياري)": "Deadline (optional)", "مفيش أوامر لسه": "No orders yet", "مفيش حاجة مطلوبة منك دلوقتي": "Nothing assigned to you right now", "خلصت ✔": "Done ✔", "خلصت": "Done", "من المدير": "From the manager", "متأخر": "Late", "آخر ميعاد": "Deadline", "اكتب المطلوب": "Enter what is needed", "تحذف الأمر ده؟": "Delete this order?", "اتحذف": "Deleted", "تخطيط": "Planning", "تنفيذ": "In execution", "اتقفل": "Closed", "مفتوح للإضافة": "Open for additions", "بادجيت": "Budget", "جنيه": "EGP", "اتنفذ": "Spent", "باقي": "Remaining", "بند جديد": "New item", "البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)": "Item (e.g. 20 bags potassium sulfate)", "المبلغ": "Amount", "مفيش بنود": "No items", "البند": "Item", "رجوع": "Undo", "إلغاء": "Cancel", "مترحل من": "Carried over from", "الإجمالي": "Total", "أي بند ميتعلمش عليه \"تم\" أو \"إلغاء\" لحد آخر الشهر، بيترحل لوحده للشهر اللي بعده": "Any item not marked \"Done\" or \"Cancel\" by month end carries over to the next month automatically", "اتنفذ ✔": "Done ✔", "اتلغى": "Cancelled", "رجع": "Undone", "اكتب البند": "Enter the item", "اكتب المبلغ": "Enter the amount", "اتضاف ✔": "Added ✔", "تحذف البند ده؟": "Delete this item?", "أهلاً": "Hello", "شغل النهارده": "Today's work", "نظرة سريعة": "At a glance", "طلبات مستنية ردك": "Requests waiting for you", "شغل بكره": "Tomorrow's work", "تسجيل جديد": "Register someone", "الاسم": "Name", "رقم الموبايل (ده اللي هيدخل بيه)": "Mobile number (used to log in)", "مهندس تنفيذي": "Field engineer", "مشرف عمالة": "Labor supervisor", "تسجيل": "Register", "المهندسين التنفيذيين": "Field engineers", "مشرفين العمالة": "Labor supervisors", "مفيش حد متسجل لسه": "Nobody registered yet", "لينك وQR واحد للكل": "One link & QR for everyone", "نسخ اللينك": "Copy link", "كل واحد يفتح اللينك ويكتب رقم موبايله بس": "Everyone opens the link and enters their mobile number", "اتنسخ ✔": "Copied ✔", "انسخه من فوق": "Copy it from above", "اكتب الاسم": "Enter the name", "اكتب رقم موبايل صح": "Enter a valid mobile number", "تحذف الشخص ده؟ مش هيقدر يدخل تاني": "Delete this person? They will no longer be able to log in", "اتسجل ✔": "Registered ✔", "الرقم ده مش متسجل": "This number is not registered", "مش مسموح": "Not allowed", "البادجيت ده مقفول": "This budget is closed", "البادجيت ده اتقفل": "This budget is closed", "مش لاقي البند ده، اعمل تحديث": "Item not found, please refresh", "اكتب رقم موبايلك في MANAGER_PHONE فوق الأول": "Set MANAGER_PHONE first", "حالة غلط": "Invalid status", "أمر مش معروف": "Unknown action", "اختار اليوم": "Choose a day", "اختار الشخص": "Choose a person", "اختار الدور": "Choose a role", "مش لاقي الرقم ده": "Number not found", "نسخة تجريبية · شوفها كـ:": "Demo · view as:", "المدير": "Manager", "المهندس": "Engineer", "مشرف": "Supervisor"};
+const EN = {"يناير": "January", "فبراير": "February", "مارس": "March", "أبريل": "April", "مايو": "May", "يونيو": "June", "يوليو": "July", "أغسطس": "August", "سبتمبر": "September", "أكتوبر": "October", "نوفمبر": "November", "ديسمبر": "December", "شراء": "Purchase", "برنامج زراعي": "Agri program", "استفسار": "Question", "احتياج": "Need", "مستني": "Pending", "موافق": "Approved", "مرفوض": "Rejected", "اليوميات": "Labor pay", "📋 من برنامج التسميد والرش": "📋 From the fertilization & spray program", "وزّعها": "Assign", "رش": "Spray", "تسميد": "Fertilize", "ميكانيكي": "Mechanical", "الحساب: يومية للنفر": "Pay: daily per worker", "الحساب: بالوحدة": "Pay: per unit", "الوحدة (فدان، خط، شجرة…)": "Unit (feddan, row, tree…)", "سعر الوحدة": "Unit price", "اكتب سعر الوحدة": "Enter the unit price", "من البرنامج": "From the program", "العدد الفعلي": "Actual count", "المقاول (اختياري)": "Contractor (optional)", "المقاول": "Contractor", "فعلي": "Actual", "نفر": "workers", "مختلف عن المطلوب": "Differs from plan", "الحوشة دي مترشة": "This plot was sprayed with", "فترة الأمان لحد": "safety interval until", "تضيف الشغلانة برضه؟": "Add the job anyway?", "متدخلش عمالة قبل": "no workers before", "يوم": "on", "رش وتسميد": "Spraying & fertilization", "النهارده": "Today", "متوزعتش": "Not assigned", "متأخر من البرنامج": "Overdue from program", "مفيش": "None", "سعر اليومية للنفر": "Daily wage per worker", "حفظ": "Save", "اللي قبله": "Previous", "اللي بعده": "Next", "يومية": "Daily", "جنيه": "EGP", "حسب المقاول": "By contractor", "بدون مقاول": "No contractor", "التفاصيل": "Details", "اليوم": "Day", "مطلوب": "Planned", "السعر": "Rate", "نسخ الحساب للواتساب": "Copy for WhatsApp", "اكتب سعر اليومية": "Enter the daily wage", "اتحفظ ✔": "Saved ✔", "مفيش شغل يومية خلص في الأسبوع ده": "No completed daily-labor jobs this week", "الربط ببرنامج التسميد والرش": "Link to the fertilization app", "الحالة": "Status", "فيه مشكلة": "Problem", "مش متربط": "Not linked", "الكود السري": "Secret code", "اكتب الكود السري": "Enter the secret code", "فترة الأمان لكل رشة (بالأيام)": "Safety interval per spray (days)", "حفظ فترات الأمان": "Save safety intervals", "الربط ببرنامج التسميد مش شغال": "The fertilization link is not working", "عدد الوحدات اللي اتعملت": "Units completed", "بالوحدة": "Per unit", "مرحلة اتعملت أو تعليق…": "Step done or comment…", "↩ رجّعه لسه مخلصش": "↩ Mark as not done", "اكتب المرحلة أو التعليق": "Write the step or comment", "اترد": "Replied", "لسه": "To do", "شغال": "In progress", "تم": "Done", "ملغي": "Cancelled", "سماد": "Fertilizer", "مبيدات": "Pesticides", "خامات": "Materials", "عمالة": "Labor", "صيانة": "Maintenance", "وقود": "Fuel", "أخرى": "Other", "النهارده": "Today", "بكره": "Tomorrow", "امبارح": "Yesterday", "لسه ماحطيتش رابط الـ Apps Script في الملف": "Apps Script link not set in the file", "الرقم ده متسجل قبل كده": "This number is already registered", "الاسم ده متسجل قبل كده": "This name is already registered", "استنى ثانية لحد ما يتحفظ": "Wait a second until it saves", "متحفظش": "Not saved", "بيتحدث…": "Refreshing…", "اتحدث ✔": "Refreshed ✔", "رقم الموبايل": "Mobile number", "دخول": "Log in", "اكتب رقم الموبايل": "Enter the mobile number", "الكل": "Everyone", "الرئيسية": "Home", "الطلبات": "Requests", "الأوامر": "Orders", "الشغل": "Work", "البادجيت": "Budget", "التسجيل": "Team", "طلباتي": "My requests", "مطلوب مني": "My tasks", "الدور ده مش متعرف في شيت Users": "Unknown role in the Users sheet", "بيتحفظ…": "Saving…", "تحديث": "Refresh", "خروج": "Log out", "أوامر لسه مخلصتش": "Open orders", "أوامر ليك": "Your orders", "أوامر للمشرفين": "Supervisor orders", "شغلانة": "jobs", "عمالة باليومية": "Daily labor", "عمالة ثابتة": "Permanent labor", "خلص": "Done", "إضافة شغلانة لـ": "Add a job for", "الشغلانة (تقليم، تعشيب، رش…)": "Job (pruning, weeding, spraying…)", "الحوشة": "Plot", "العدد": "Count", "أي مشرف": "Any supervisor", "ملاحظة (اختياري)": "Note (optional)", "إضافة": "Add", "مفيش شغل متسجل لـ": "No work planned for", "محتاج حاجة؟": "Need something?", "اكتب الاحتياج (عمالة باليومية زيادة، أدوات، خامات…)": "Describe the need (extra daily labor, tools, materials…)", "إرسال": "Send", "من": "by", "المشرف": "Supervisor", "الرجالة": "Workers", "أسماء الرجالة (اختياري)": "Workers' names (optional)", "بدأنا": "Started", "رجّعها شغال": "Back to in progress", "حذف": "Delete", "اكتب الشغلانة": "Enter the job", "اتضافت ✔": "Added ✔", "تمام ✔": "Done ✔", "اتسجل": "Saved", "تحذف الشغلانة دي؟": "Delete this job?", "اتحذفت": "Deleted", "طلب جديد": "New request", "التفاصيل: الصنف والكمية، أو المحصول اللي محتاج له برنامج، أو عدد العمالة…": "Details: item and quantity, crop needing a program, or number of workers…", "مفيش طلبات لسه": "No requests yet", "ردك": "your reply", "الرد": "a reply", "مستني ردك": "Waiting for your reply", "مستني الرد": "Waiting for a reply", "اتعمل عليها": "Handled", "رد أو توجيه (اختياري مع الموافقة)": "Reply or instructions (optional when approving)", "رد": "Reply", "رفض": "Reject", "اكتب التفاصيل": "Enter the details", "اتبعت ✔": "Sent ✔", "اكتب الرد الأول": "Write the reply first", "أمر جديد": "New order", "المطلوب": "What is needed", "آخر ميعاد (اختياري)": "Deadline (optional)", "مفيش أوامر لسه": "No orders yet", "مفيش حاجة مطلوبة منك دلوقتي": "Nothing assigned to you right now", "خلصت ✔": "Done ✔", "خلصت": "Done", "من المدير": "From the manager", "متأخر": "Late", "آخر ميعاد": "Deadline", "اكتب المطلوب": "Enter what is needed", "تحذف الأمر ده؟": "Delete this order?", "اتحذف": "Deleted", "تخطيط": "Planning", "تنفيذ": "In execution", "اتقفل": "Closed", "مفتوح للإضافة": "Open for additions", "بادجيت": "Budget", "جنيه": "EGP", "اتنفذ": "Spent", "باقي": "Remaining", "بند جديد": "New item", "البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)": "Item (e.g. 20 bags potassium sulfate)", "المبلغ": "Amount", "مفيش بنود": "No items", "البند": "Item", "رجوع": "Undo", "إلغاء": "Cancel", "مترحل من": "Carried over from", "الإجمالي": "Total", "أي بند ميتعلمش عليه \"تم\" أو \"إلغاء\" لحد آخر الشهر، بيترحل لوحده للشهر اللي بعده": "Any item not marked \"Done\" or \"Cancel\" by month end carries over to the next month automatically", "اتنفذ ✔": "Done ✔", "اتلغى": "Cancelled", "رجع": "Undone", "اكتب البند": "Enter the item", "اكتب المبلغ": "Enter the amount", "اتضاف ✔": "Added ✔", "تحذف البند ده؟": "Delete this item?", "أهلاً": "Hello", "شغل النهارده": "Today's work", "نظرة سريعة": "At a glance", "طلبات مستنية ردك": "Requests waiting for you", "شغل بكره": "Tomorrow's work", "تسجيل جديد": "Register someone", "الاسم": "Name", "رقم الموبايل (ده اللي هيدخل بيه)": "Mobile number (used to log in)", "مهندس تنفيذي": "Field engineer", "مشرف عمالة": "Labor supervisor", "تسجيل": "Register", "المهندسين التنفيذيين": "Field engineers", "مشرفين العمالة": "Labor supervisors", "مفيش حد متسجل لسه": "Nobody registered yet", "لينك وQR واحد للكل": "One link & QR for everyone", "نسخ اللينك": "Copy link", "كل واحد يفتح اللينك ويكتب رقم موبايله بس": "Everyone opens the link and enters their mobile number", "اتنسخ ✔": "Copied ✔", "انسخه من فوق": "Copy it from above", "اكتب الاسم": "Enter the name", "اكتب رقم موبايل صح": "Enter a valid mobile number", "تحذف الشخص ده؟ مش هيقدر يدخل تاني": "Delete this person? They will no longer be able to log in", "اتسجل ✔": "Registered ✔", "الرقم ده مش متسجل": "This number is not registered", "مش مسموح": "Not allowed", "البادجيت ده مقفول": "This budget is closed", "البادجيت ده اتقفل": "This budget is closed", "مش لاقي البند ده، اعمل تحديث": "Item not found, please refresh", "اكتب رقم موبايلك في MANAGER_PHONE فوق الأول": "Set MANAGER_PHONE first", "حالة غلط": "Invalid status", "أمر مش معروف": "Unknown action", "اختار اليوم": "Choose a day", "اختار الشخص": "Choose a person", "اختار الدور": "Choose a role", "مش لاقي الرقم ده": "Number not found", "نسخة تجريبية · شوفها كـ:": "Demo · view as:", "المدير": "Manager", "المهندس": "Engineer", "مشرف": "Supervisor"};
 const AR_KEYS = Object.keys(EN).sort((a, b) => b.length - a.length);
 const AR_RE = new RegExp('(?<![\\u0600-\\u06FF])(' + AR_KEYS.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')(?![\\u0600-\\u06FF])', 'g');
 const D0 = '', D1 = '';
@@ -130,8 +133,11 @@ function saveCache(){ try { localStorage.setItem('fwp_cache', JSON.stringify({ p
 function nowStr(){ const d = new Date(); return ymd(d) + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
 function localApply(a, d){
   const tmp = 'tmp' + Date.now(), me = S.me.name, f = (l, id) => l.find(x => x.id === id) || {}, rm = (k, id) => S[k] = S[k].filter(x => x.id !== id);
-  if (a === 'addWork') S.work.push({ id: tmp, date: d.date, task: d.task, hosha: d.hosha, workers: Number(d.workers) || 0, ltype: d.ltype, notes: d.notes, by: me, status: 'لسه', names: '', sup: d.sup });
-  if (a === 'updWork') Object.assign(f(S.work, d.id), { status: d.status, names: d.names });
+  if (a === 'addWork') S.work.push({ id: tmp, date: d.date, task: d.task, hosha: d.hosha, workers: Number(d.workers) || 0, ltype: d.ltype, notes: d.notes, by: me, status: 'لسه', names: '', sup: d.sup, src: d.src, pay: d.pay, rate: d.pay === 'وحدة' ? d.rate : '', unit: d.unit, units: '', actual: '', contractor: '' });
+  if (a === 'updWork') { const w = f(S.work, d.id); Object.assign(w, { status: d.status, names: d.names });
+    if (d.status === 'تم') { w.actual = d.actual === '' ? w.workers : Number(d.actual); w.contractor = d.contractor; if (d.units !== '') w.units = Number(d.units); if (w.pay !== 'وحدة' && !w.rate) w.rate = (S.settings || {}).wage || ''; } }
+  if (a === 'payWork') { const w = f(S.work, d.id); ['actual', 'rate', 'units'].forEach(k => { if (d[k] !== undefined && d[k] !== '') w[k] = Number(d[k]); }); if (d.contractor !== undefined) w.contractor = d.contractor; }
+  if (a === 'saveSettings') { S.settings = S.settings || {}; if (d.wage !== undefined) S.settings.wage = Number(d.wage) || 0; if (d.phi) S.settings.phi = d.phi; if (d.fertCode) S.settings.fertLinked = true; }
   if (a === 'delWork') rm('work', d.id);
   if (a === 'addReq') S.requests.push({ id: tmp, created: nowStr(), type: d.type, details: d.details, by: me, status: 'مستني', reply: '' });
   if (a === 'replyReq') Object.assign(f(S.requests, d.id), { status: d.status, reply: d.reply });
@@ -197,7 +203,7 @@ const pendingReqs = () => S.requests.filter(r => r.status === 'مستني').leng
 const isMine = o => o.to === S.me.name || o.to === 'الكل';
 const openOrders  = () => S.orders.filter(o => o.status !== 'تم' && isMine(o)).length;
 const TABS = {
-  manager:   [['الرئيسية', sumView], ['الطلبات', reqView, pendingReqs], ['الأوامر', ordView], ['الشغل', workView], ['البادجيت', budView], ['التسجيل', usersView]],
+  manager:   [['الرئيسية', sumView], ['الطلبات', reqView, pendingReqs], ['الأوامر', ordView], ['الشغل', workView], ['اليوميات', payView], ['البادجيت', budView], ['التسجيل', usersView]],
   engineer:  [['الشغل', workView], ['طلباتي', reqView], ['مطلوب مني', ordView, openOrders], ['البادجيت', budView]],
   supervisor:[['الشغل', workView, openOrders]]
 };
@@ -220,6 +226,61 @@ function render(keep){
   window.scrollTo(0, y);
 }
 
+/* ===================== الربط ببرنامج التسميد والرش ===================== */
+const F = () => (S && S.fert) || {};
+const ST = () => (S && S.settings) || {};
+const KIND = { spray: '🧴 رش', fert: '🌱 تسميد', mech: '🚜 ميكانيكي' };
+function cropArea(c){ return ((F().crops || []).find(x => x.name === c) || {}).area || 0; }
+function progItems(date){
+  const out = [];
+  (F().days || []).filter(o => o.date === date).forEach(o => {
+    const area = cropArea(o.crop), base = o.crop + '|' + o.date + '|';
+    if (o.spray) out.push({ key: base + 'spray', kind: 'spray', crop: o.crop, date: o.date,
+      task: 'رش ' + o.spray + (o.sq ? ' — ' + o.sq + ' / ' + (F().tank || 1200) + ' لتر' : ''), notes: o.stage ? 'المرحلة: ' + o.stage : '' });
+    if (o.f && o.f.length) out.push({ key: base + 'fert', kind: 'fert', crop: o.crop, date: o.date,
+      task: 'تسميد: ' + o.f.map(x => x.n + ' ' + (area ? Math.round(x.q * area * 10) / 10 + ' كجم' : x.q + ' كجم/فدان')).join('، '),
+      notes: o.f.map(x => x.n + ' ' + x.q + ' كجم/فدان').join('، ') });
+    if (o.mech) out.push({ key: base + 'mech', kind: 'mech', crop: o.crop, date: o.date, task: o.mech, notes: o.notes || '' });
+  });
+  return out;
+}
+const srcWork = key => S.work.find(w => w.src === key);
+function progLate(){
+  const out = [];
+  for (let i = 1; i <= 7; i++) progItems(addDays(-i)).forEach(p => { const w = srcWork(p.key); if (!w || w.status !== 'تم') out.push(p); });
+  return out;
+}
+/* فترة الأمان: آخر رشة على الحوشة قبل اليوم ده ولسه مدتها مخلصتش */
+function phiWarn(hosha, date, src){
+  if (!hosha || String(src || '').endsWith('|spray')) return null;
+  const phi = ST().phi || {};
+  let best = null;
+  (F().days || []).forEach(o => {
+    if (o.crop !== hosha || !o.spray || o.date > date) return;
+    const n = Number(phi[o.spray]) || 0; if (!n) return;
+    const until = ymdAdd(o.date, n);
+    if (until > date && (!best || until > best.until)) best = { spray: o.spray, date: o.date, until };
+  });
+  return best;
+}
+function ymdAdd(s, n){ const [y, m, d] = s.split('-').map(Number); const x = new Date(y, m - 1, d + n, 12); return ymd(x); }
+function phiBox(p){ return p ? `<div class="warn">⚠️ الحوشة دي مترشة ${esc(p.spray)} يوم ${p.date} — متدخلش عمالة قبل ${p.until}</div>` : ''; }
+function progSection(date){
+  if (S.me.role === 'supervisor' || !F().linked) return '';
+  if (F().error) return `<div class="warn">⚠️ الربط ببرنامج التسميد مش شغال: ${esc(F().error)}</div>`;
+  const items = progItems(date).filter(p => !srcWork(p.key));
+  if (!items.length) return '';
+  return `<div class="sec">📋 من برنامج التسميد والرش (${items.length})</div>` + items.map(p => `<div class="card prog">
+    <div class="row"><b>${KIND[p.kind]} — ${esc(p.crop)}</b><button class="btn b" onclick="fromProg('${escv(p.key)}')">وزّعها</button></div>
+    <div style="white-space:pre-wrap;margin-top:4px">${esc(p.task)}</div>${p.notes ? `<div class="muted">${esc(p.notes)}</div>` : ''}</div>`).join('');
+}
+let PREFILL = null;
+function fromProg(key){
+  const p = progItems(key.split('|')[1]).find(x => x.key === key); if (!p) return;
+  PREFILL = p; DAY = p.date; LTYPE = 'يومية'; render();
+  const e = document.getElementById('w_n'); if (e) { try { e.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (x) {} setTimeout(() => e.focus(), 300); }
+}
+
 /* ===================== الشغل ===================== */
 function workView(){
   const role = S.me.role;
@@ -229,7 +290,7 @@ function workView(){
   const tot = list.filter(isDaily).reduce((a, w) => a + (Number(w.workers) || 0), 0);
   const fixed = list.filter(w => !isDaily(w)).reduce((a, w) => a + (Number(w.workers) || 0), 0);
   const done = list.filter(w => w.status === 'تم').length;
-  const hoshas = [...new Set(S.work.map(w => w.hosha).filter(Boolean))];
+  const hoshas = [...new Set([...(F().crops || []).map(c => c.name), ...S.work.map(w => w.hosha)].filter(Boolean))];
   let h = '';
 
   const ords = S.orders.filter(o => o.status !== 'تم');
@@ -249,16 +310,24 @@ function workView(){
     <div class="stat"><b>${tot}</b>عمالة باليومية</div><div class="stat"><b>${done}/${list.length}</b>خلص</div></div>
     ${fixed ? `<div class="muted" style="text-align:center;margin:-4px 0 10px">+ ${fixed} عمالة ثابتة</div>` : ''}`;
 
+  h += progSection(DAY);
   if (role !== 'supervisor') {
-    h += `<details class="card" ${role === 'engineer' ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
-      <textarea id="w_task" rows="2" placeholder="الشغلانة (تقليم، تعشيب، رش…)"></textarea>
+    const P = PREFILL && PREFILL.date === DAY ? PREFILL : null;
+    h += `<details class="card ${P ? 'prog' : ''}" ${role === 'engineer' || P ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
+      ${P ? `<div class="muted" style="margin-top:6px">📋 من البرنامج — ${KIND[P.kind]} <button class="mini l" onclick="PREFILL=null;render()">إلغاء</button></div>` : ''}
+      <textarea id="w_task" rows="2" placeholder="الشغلانة (تقليم، تعشيب، رش…)">${P ? esc(P.task) : ''}</textarea>
       <div class="chips" style="margin:6px 0 2px">
         <button class="chip ${LTYPE === 'يومية' ? 'on' : ''}" onclick="LTYPE='يومية';render(true)">عمالة باليومية</button>
         <button class="chip ${LTYPE === 'ثابتة' ? 'on' : ''}" onclick="LTYPE='ثابتة';render(true)">عمالة ثابتة</button></div>
-      <div class="grid2"><input id="w_hosha" list="hl" placeholder="الحوشة"><input id="w_n" type="number" min="0" inputmode="numeric" placeholder="العدد"></div>
+      ${LTYPE === 'يومية' ? `<div class="chips" style="margin:2px 0">
+        <button class="chip ${PAY === 'يومية' ? 'on' : ''}" onclick="PAY='يومية';render(true)">الحساب: يومية للنفر</button>
+        <button class="chip ${PAY === 'وحدة' ? 'on' : ''}" onclick="PAY='وحدة';render(true)">الحساب: بالوحدة</button></div>
+        ${PAY === 'وحدة' ? `<div class="grid2"><input id="w_unit" list="ul" placeholder="الوحدة (فدان، خط، شجرة…)"><input id="w_rate" type="number" min="0" inputmode="decimal" placeholder="سعر الوحدة"></div>
+        <datalist id="ul"><option value="فدان"><option value="خط"><option value="شجرة"><option value="صندوق"></datalist>` : ''}` : ''}
+      <div class="grid2"><input id="w_hosha" list="hl" placeholder="الحوشة" value="${P ? esc(P.crop) : ''}"><input id="w_n" type="number" min="0" inputmode="numeric" placeholder="العدد"></div>
       <datalist id="hl">${hoshas.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
       <select id="w_sup">${S.users.filter(u => u.role === 'supervisor').map(u => `<option value="${escv(u.name)}">${esc(u.name)}</option>`).join('')}<option value="">أي مشرف</option></select>
-      <textarea id="w_notes" rows="3" placeholder="ملاحظة (اختياري)"></textarea>
+      <textarea id="w_notes" rows="3" placeholder="ملاحظة (اختياري)">${P ? esc(P.notes) : ''}</textarea>
       <button class="btn full" onclick="addWork()">إضافة</button></details>`;
   }
 
@@ -279,8 +348,16 @@ function workCard(w){
     <span class="tag ${WST[w.status] || 't-g'}">${escv(w.status)}</span></div>
     <div class="muted">👷 ${(w.ltype || 'يومية') === 'يومية' ? 'عمالة باليومية' : 'عمالة ثابتة'}: ${esc(w.workers)} · من ${esc(w.by)}${w.sup ? ' · المشرف: ' + esc(w.sup) : ''}</div>
     ${w.notes ? `<div class="muted" style="white-space:pre-wrap">📝 ${esc(w.notes)}</div>` : ''}
-    ${w.names ? `<div class="muted">الرجالة: ${esc(w.names)}</div>` : ''}`;
+    ${w.names ? `<div class="muted">الرجالة: ${esc(w.names)}</div>` : ''}
+    ${w.src ? `<div class="muted">📋 من برنامج التسميد والرش</div>` : ''}
+    ${w.pay === 'وحدة' ? `<div class="muted">💵 بالوحدة: ${esc(w.rate)} جنيه / ${esc(w.unit || 'وحدة')}${w.units !== '' && w.units !== undefined ? ' · اتعمل ' + esc(w.units) : ''}</div>` : ''}
+    ${w.status === 'تم' && isDailyW(w) && w.actual !== '' && w.actual !== undefined ? `<div class="muted">✔ فعلي: ${esc(w.actual)} نفر${w.contractor ? ' · المقاول: ' + esc(w.contractor) : ''}${Number(w.actual) !== Number(w.workers) ? ' <span class="tag t-or">مختلف عن المطلوب</span>' : ''}</div>` : ''}
+    ${w.status !== 'تم' ? phiBox(phiWarn(w.hosha, w.date, w.src)) : ''}`;
   if (role === 'supervisor' && w.status !== 'تم') {
+    if (isDailyW(w)) h += `<div class="grid2"><input id="ac_${w.id}" type="number" min="0" inputmode="numeric" placeholder="العدد الفعلي" value="${esc(w.workers)}">
+      <input id="ct_${w.id}" list="cl" placeholder="المقاول (اختياري)" value="${esc(w.contractor)}"></div>
+      ${w.pay === 'وحدة' ? `<input id="un_${w.id}" type="number" min="0" inputmode="decimal" placeholder="عدد الوحدات اللي اتعملت (${escv(w.unit || 'وحدة')})">` : ''}
+      <datalist id="cl">${contractors().map(c => `<option value="${esc(c)}">`).join('')}</datalist>`;
     h += `<input id="nm_${w.id}" placeholder="أسماء الرجالة (اختياري)" value="${esc(w.names)}">
       <div class="btns">${w.status === 'لسه' ? `<button class="btn o" onclick="setWork('${w.id}','شغال')">بدأنا</button>` : ''}
       <button class="btn" onclick="setWork('${w.id}','تم')">تم ✔</button></div>`;
@@ -295,9 +372,22 @@ function workCard(w){
 }
 function addWork(){
   const task = val('w_task'); if (!task) return toast('اكتب الشغلانة');
-  run('addWork', { date: DAY, task, hosha: val('w_hosha'), workers: val('w_n'), ltype: LTYPE, sup: val('w_sup'), notes: val('w_notes') }, 'اتضافت ✔');
+  const pay = LTYPE === 'يومية' ? PAY : 'يومية';
+  if (pay === 'وحدة' && !(Number(val('w_rate')) > 0)) return toast('اكتب سعر الوحدة');
+  const p = phiWarn(val('w_hosha'), DAY, PREFILL && PREFILL.date === DAY ? PREFILL.key : '');
+  if (p && !confirm(tr('الحوشة دي مترشة') + ' ' + p.spray + ' — ' + tr('فترة الأمان لحد') + ' ' + p.until + '. ' + tr('تضيف الشغلانة برضه؟'))) return;
+  const src = PREFILL && PREFILL.date === DAY ? PREFILL.key : '';
+  run('addWork', { date: DAY, task, hosha: val('w_hosha'), workers: val('w_n'), ltype: LTYPE, sup: val('w_sup'), notes: val('w_notes'),
+    src, pay, rate: val('w_rate'), unit: val('w_unit') }, 'اتضافت ✔');
+  PREFILL = null;
 }
-function setWork(id, status){ run('updWork', { id, status, names: val('nm_' + id) }, status === 'تم' ? 'تمام ✔' : 'اتسجل'); }
+function setWork(id, status){
+  const d = { id, status, names: val('nm_' + id) };
+  if (status === 'تم') { d.actual = val('ac_' + id); d.contractor = val('ct_' + id); d.units = val('un_' + id); }
+  run('updWork', d, status === 'تم' ? 'تمام ✔' : 'اتسجل');
+}
+const isDailyW = w => (w.ltype || 'يومية') === 'يومية';
+const contractors = () => [...new Set(S.work.map(w => w.contractor).filter(Boolean))];
 function delWork(id){ if (confirm(tr('تحذف الشغلانة دي؟'))) run('delWork', { id }, 'اتحذفت'); }
 
 /* ===================== الطلبات ===================== */
@@ -456,6 +546,96 @@ function addBudget(){
 }
 function delBudget(id){ if (confirm(tr('تحذف البند ده؟'))) run('delBudget', { id }, 'اتحذف'); }
 
+/* ===================== حساب العمالة الخارجية (اليوميات) ===================== */
+function weekRange(off){
+  const d = new Date(); const back = (d.getDay() + 1) % 7; // الأسبوع بيبدأ السبت
+  d.setDate(d.getDate() - back + off * 7);
+  const a = ymd(d); d.setDate(d.getDate() + 6); return [a, ymd(d)];
+}
+function jobCost(w){
+  if (w.pay === 'وحدة') return (Number(w.units) || 0) * (Number(w.rate) || 0);
+  return actualOf(w) * (Number(w.rate) || 0);
+}
+const actualOf = w => (w.actual === '' || w.actual === undefined || w.actual === null) ? Number(w.workers) || 0 : Number(w.actual) || 0;
+function payView(){
+  const [a, b] = weekRange(PAYWEEK);
+  const list = S.work.filter(w => w.date >= a && w.date <= b && isDailyW(w) && w.status === 'تم').sort((x, y) => x.date.localeCompare(y.date));
+  const men = l => l.reduce((s, w) => s + (w.pay === 'وحدة' ? 0 : actualOf(w)), 0);
+  const total = list.reduce((s, w) => s + jobCost(w), 0);
+  const byC = {};
+  list.forEach(w => { const c = w.contractor || 'بدون مقاول'; byC[c] = byC[c] || { men: 0, cost: 0, jobs: 0 }; byC[c].jobs++; byC[c].cost += jobCost(w); byC[c].men += w.pay === 'وحدة' ? 0 : actualOf(w); });
+  const notDone = S.work.filter(w => w.date >= a && w.date <= b && isDailyW(w) && w.status !== 'تم' && w.date < addDays(0)).length;
+  const noRate = list.filter(w => !(Number(w.rate) > 0)).length;
+
+  let h = `<div class="card"><h3>💵 سعر اليومية للنفر</h3><div class="row" style="flex-wrap:nowrap;gap:6px">
+    <input id="s_wage" type="number" min="0" inputmode="numeric" value="${esc(ST().wage || '')}" placeholder="مثلاً 250" style="margin:0">
+    <button class="btn" style="white-space:nowrap" onclick="saveWage()">حفظ</button></div>
+    <div class="muted">ده اللي بيتحسب لوحده على أي شغلانة يومية تخلص. تقدر تغيّره لشغلانة معينة من الجدول تحت.</div></div>`;
+  h += `<div class="chips"><button class="chip" onclick="PAYWEEK--;render()">‹ اللي قبله</button>
+    <span class="chip on" style="cursor:default">${a} → ${b}</span>
+    ${PAYWEEK < 0 ? `<button class="chip" onclick="PAYWEEK++;render()">اللي بعده ›</button>` : ''}</div>`;
+  h += `<div class="stats"><div class="stat"><b>${men(list)}</b>يومية</div><div class="stat"><b>${list.length}</b>شغلانة</div><div class="stat"><b>${num(total)}</b>جنيه</div></div>`;
+  if (noRate) h += `<div class="warn">⚠️ ${noRate} شغلانة من غير سعر — اكتب سعر اليومية فوق أو في الجدول</div>`;
+  if (notDone) h += `<div class="muted" style="text-align:center;margin-bottom:8px">${notDone} شغلانة يومية فاتت ولسه متعلمش عليها تم، فمش داخلة في الحساب</div>`;
+  if (!list.length) return h + `<div class="empty">مفيش شغل يومية خلص في الأسبوع ده</div>`;
+  h += `<div class="sec">حسب المقاول</div><div class="card"><table><tr><th>المقاول</th><th>يومية</th><th>المبلغ</th></tr>
+    ${Object.entries(byC).sort((x, y) => y[1].cost - x[1].cost).map(([c, v]) => `<tr><td>${esc(c)}</td><td>${v.men}</td><td><b>${num(v.cost)}</b></td></tr>`).join('')}
+    <tr><th>الإجمالي</th><th>${men(list)}</th><th>${num(total)}</th></tr></table></div>`;
+  h += `<div class="sec">التفاصيل</div><div class="card" style="overflow-x:auto"><table class="pt"><tr><th>اليوم</th><th>الشغلانة</th><th>مطلوب</th><th>فعلي</th><th>السعر</th><th>المبلغ</th><th></th></tr>
+    ${list.map(w => { const u = w.pay === 'وحدة';
+      return `<tr><td style="white-space:nowrap">${w.date.slice(5)}</td><td>${esc(w.task)}${w.hosha ? '<div class="muted">' + esc(w.hosha) + '</div>' : ''}<div class="muted">${esc(w.contractor || '')}</div></td>
+      <td>${u ? '—' : esc(w.workers)}</td>
+      <td><input id="pa_${w.id}" type="number" min="0" inputmode="decimal" value="${esc(u ? w.units : actualOf(w))}">${u ? `<div class="muted">${esc(w.unit || 'وحدة')}</div>` : ''}</td>
+      <td><input id="pr_${w.id}" type="number" min="0" inputmode="decimal" value="${esc(w.rate)}"></td>
+      <td><b>${num(jobCost(w))}</b></td>
+      <td><button class="mini" style="background:var(--g)" onclick="savePay('${w.id}',${u ? 1 : 0})">حفظ</button></td></tr>`; }).join('')}</table></div>
+    <button class="btn b full" onclick="copyPay()">📋 نسخ الحساب للواتساب</button>`;
+  return h;
+}
+function saveWage(){ const v = Number(val('s_wage')); if (!(v > 0)) return toast('اكتب سعر اليومية'); run('saveSettings', { wage: v }, 'اتحفظ ✔'); }
+function savePay(id, unit){
+  const d = { id, rate: val('pr_' + id) };
+  if (unit) d.units = val('pa_' + id); else d.actual = val('pa_' + id);
+  run('payWork', d, 'اتحفظ ✔');
+}
+function copyPay(){
+  const [a, b] = weekRange(PAYWEEK);
+  const list = S.work.filter(w => w.date >= a && w.date <= b && isDailyW(w) && w.status === 'تم').sort((x, y) => x.date.localeCompare(y.date));
+  const byC = {};
+  list.forEach(w => { const c = w.contractor || 'بدون مقاول'; (byC[c] = byC[c] || []).push(w); });
+  let t = `*حساب العمالة الخارجية* ${a} → ${b}\n`;
+  let all = 0;
+  Object.entries(byC).forEach(([c, l]) => {
+    const s = l.reduce((x, w) => x + jobCost(w), 0); all += s;
+    t += `\n*${c}* — ${num(s)} جنيه\n` + l.map(w => `${w.date.slice(5)}: ${w.task}${w.hosha ? ' (' + w.hosha + ')' : ''} — ${w.pay === 'وحدة' ? (w.units || 0) + ' ' + (w.unit || 'وحدة') + ' × ' + (w.rate || 0) : actualOf(w) + ' نفر × ' + (w.rate || 0)} = ${num(jobCost(w))}`).join('\n') + '\n';
+  });
+  t += `\n*الإجمالي: ${num(all)} جنيه*`;
+  try { navigator.clipboard.writeText(t).then(() => toast('اتنسخ ✔ — الصقه في الواتساب'), () => toast('مقدرتش أنسخ')); } catch (e) { toast('مقدرتش أنسخ'); }
+}
+
+/* ===================== إعدادات الربط (المدير) ===================== */
+function linkCard(){
+  const f = F(), phi = ST().phi || {};
+  const sprays = [...new Set([...(f.sprays || []), ...Object.keys(phi)])];
+  let h = `<div class="sec">🔗 الربط ببرنامج التسميد والرش</div><div class="card">
+    <div class="row"><b>الحالة</b><span class="tag ${f.linked && !f.error ? 't-ok' : f.error ? 't-red' : 't-g'}">${f.linked && !f.error ? 'شغال' : f.error ? 'فيه مشكلة' : 'مش متربط'}</span></div>
+    ${f.error ? `<div class="warn">${esc(f.error)}</div>` : ''}
+    <div class="muted" style="margin-top:6px">اكتب الكود السري بتاع أبلكيشن التسميد (نفس اللي بتدخل بيه هناك)</div>
+    <div class="row" style="flex-wrap:nowrap;gap:6px"><input id="s_fc" type="password" dir="ltr" placeholder="${ST().fertLinked ? '••••• (متسجل — اكتب جديد لو عايز تغيّره)' : 'الكود السري'}" style="margin:0">
+    <button class="btn" style="white-space:nowrap" onclick="saveFertCode()">حفظ</button></div></div>`;
+  h += `<div class="card"><h3>⏱️ فترة الأمان لكل رشة (بالأيام)</h3>
+    <div class="muted">عدد الأيام اللي العمالة متدخلش فيها الحوشة بعد الرشة. سيبها فاضية لو مفيش.</div>
+    ${sprays.length ? `<table>${sprays.map((s, i) => `<tr><td>${esc(s)}</td><td style="width:90px"><input id="phi_${i}" data-n="${escv(s)}" type="number" min="0" inputmode="numeric" value="${esc(phi[s] || '')}" style="margin:0"></td></tr>`).join('')}</table>
+      <button class="btn full" onclick="savePhi(${sprays.length})">حفظ فترات الأمان</button>` : '<div class="empty">أنواع الرش هتظهر هنا بعد الربط</div>'}</div>`;
+  return h;
+}
+function saveFertCode(){ const c = val('s_fc'); if (!c) return toast('اكتب الكود السري'); run('saveSettings', { fertCode: c }, 'اتحفظ ✔ — بيتربط…'); }
+function savePhi(n){
+  const phi = {};
+  for (let i = 0; i < n; i++) { const e = document.getElementById('phi_' + i); if (e && Number(e.value) > 0) phi[e.dataset.n] = Number(e.value); }
+  run('saveSettings', { phi }, 'اتحفظ ✔');
+}
+
 /* ===================== الملخص (المدير) ===================== */
 function sumView(){
   const td = addDays(0), tm = addDays(1);
@@ -476,6 +656,15 @@ function sumView(){
   const notDone = today.filter(w => w.status !== 'تم');
   if (notDone.length) h += notDone.map(workCard).join('');
 
+  if (F().linked && !F().error) {
+    const pt = progItems(td), pm = progItems(tm), lt = progLate();
+    const line = p => { const w = srcWork(p.key); return `<div class="row" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span>${KIND[p.kind]} — ${esc(p.crop)}<div class="muted" style="white-space:pre-wrap">${esc(p.task)}</div></span>
+      <span class="tag ${w ? (WST[w.status] || 't-g') : 't-g'}">${w ? escv(w.status) : 'متوزعتش'}</span></div>`; };
+    h += `<div class="sec">📋 رش وتسميد</div><div class="card prog">
+      <b>النهارده</b>${pt.length ? pt.map(line).join('') : '<div class="muted">مفيش</div>'}
+      <b style="display:block;margin-top:10px">بكره</b>${pm.length ? pm.map(line).join('') : '<div class="muted">مفيش</div>'}
+      ${lt.length ? `<b style="display:block;margin-top:10px;color:var(--r)">⚠️ متأخر من البرنامج (${lt.length})</b>${lt.map(p => `<div class="row" style="padding:5px 0;border-bottom:1px dashed var(--line)"><span>${KIND[p.kind]} — ${esc(p.crop)} · ${p.date}<div class="muted" style="white-space:pre-wrap">${esc(p.task)}</div></span></div>`).join('')}` : ''}</div>`;
+  } else if (F().error) h += `<div class="warn">⚠️ الربط ببرنامج التسميد مش شغال: ${esc(F().error)}</div>`;
   h += `<div class="sec">نظرة سريعة</div>
     <div class="card" onclick="goTab('الطلبات')" style="cursor:pointer"><div class="row"><span>⏳ طلبات مستنية ردك</span><b>${pendingReqs()}</b></div></div>
     <div class="card" onclick="goTab('الأوامر')" style="cursor:pointer"><div class="row"><span>📌 أوامر لسه مخلصتش</span><b>${openO.length}${late ? ` <span class="tag t-red">${late} متأخر</span>` : ''}</b></div></div>
@@ -512,6 +701,7 @@ function usersView(){
     <div class="muted" dir="ltr" style="word-break:break-all;margin:8px 0">${esc(appLink())}</div>
     <button class="btn b" onclick="copyLink()">نسخ اللينك</button>
     <div class="muted" style="margin-top:8px">كل واحد يفتح اللينك ويكتب رقم موبايله بس</div></div>`;
+  h += linkCard();
   setTimeout(drawQR, 0);
   return h;
 }
