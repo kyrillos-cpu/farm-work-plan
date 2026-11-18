@@ -250,21 +250,6 @@ function progLate(){
   for (let i = 1; i <= 7; i++) progItems(addDays(-i)).forEach(p => { const w = srcWork(p.key); if (!w || w.status !== 'تم') out.push(p); });
   return out;
 }
-/* فترة الأمان: آخر رشة على الحوشة قبل اليوم ده ولسه مدتها مخلصتش */
-function phiWarn(hosha, date, src){
-  if (!hosha || String(src || '').endsWith('|spray')) return null;
-  const phi = ST().phi || {};
-  let best = null;
-  (F().days || []).forEach(o => {
-    if (o.crop !== hosha || !o.spray || o.date > date) return;
-    const n = Number(phi[o.spray]) || 0; if (!n) return;
-    const until = ymdAdd(o.date, n);
-    if (until > date && (!best || until > best.until)) best = { spray: o.spray, date: o.date, until };
-  });
-  return best;
-}
-function ymdAdd(s, n){ const [y, m, d] = s.split('-').map(Number); const x = new Date(y, m - 1, d + n, 12); return ymd(x); }
-function phiBox(p){ return p ? `<div class="warn">⚠️ الحوشة دي مترشة ${esc(p.spray)} يوم ${p.date} — متدخلش عمالة قبل ${p.until}</div>` : ''; }
 function progSection(date){
   if (S.me.role === 'supervisor' || !F().linked) return '';
   if (F().error) return `<div class="warn">⚠️ الربط ببرنامج التسميد مش شغال: ${esc(F().error)}</div>`;
@@ -352,7 +337,7 @@ function workCard(w){
     ${w.src ? `<div class="muted">📋 من برنامج التسميد والرش</div>` : ''}
     ${w.pay === 'وحدة' ? `<div class="muted">💵 بالوحدة: ${esc(w.rate)} جنيه / ${esc(w.unit || 'وحدة')}${w.units !== '' && w.units !== undefined ? ' · اتعمل ' + esc(w.units) : ''}</div>` : ''}
     ${w.status === 'تم' && isDailyW(w) && w.actual !== '' && w.actual !== undefined ? `<div class="muted">✔ فعلي: ${esc(w.actual)} نفر${w.contractor ? ' · المقاول: ' + esc(w.contractor) : ''}${Number(w.actual) !== Number(w.workers) ? ' <span class="tag t-or">مختلف عن المطلوب</span>' : ''}</div>` : ''}
-    ${w.status !== 'تم' ? phiBox(phiWarn(w.hosha, w.date, w.src)) : ''}`;
+`;
   if (role === 'supervisor' && w.status !== 'تم') {
     if (isDailyW(w)) h += `<div class="grid2"><input id="ac_${w.id}" type="number" min="0" inputmode="numeric" placeholder="العدد الفعلي" value="${esc(w.workers)}">
       <input id="ct_${w.id}" list="cl" placeholder="المقاول (اختياري)" value="${esc(w.contractor)}"></div>
@@ -374,8 +359,6 @@ function addWork(){
   const task = val('w_task'); if (!task) return toast('اكتب الشغلانة');
   const pay = LTYPE === 'يومية' ? PAY : 'يومية';
   if (pay === 'وحدة' && !(Number(val('w_rate')) > 0)) return toast('اكتب سعر الوحدة');
-  const p = phiWarn(val('w_hosha'), DAY, PREFILL && PREFILL.date === DAY ? PREFILL.key : '');
-  if (p && !confirm(tr('الحوشة دي مترشة') + ' ' + p.spray + ' — ' + tr('فترة الأمان لحد') + ' ' + p.until + '. ' + tr('تضيف الشغلانة برضه؟'))) return;
   const src = PREFILL && PREFILL.date === DAY ? PREFILL.key : '';
   run('addWork', { date: DAY, task, hosha: val('w_hosha'), workers: val('w_n'), ltype: LTYPE, sup: val('w_sup'), notes: val('w_notes'),
     src, pay, rate: val('w_rate'), unit: val('w_unit') }, 'اتضافت ✔');
@@ -615,26 +598,16 @@ function copyPay(){
 
 /* ===================== إعدادات الربط (المدير) ===================== */
 function linkCard(){
-  const f = F(), phi = ST().phi || {};
-  const sprays = [...new Set([...(f.sprays || []), ...Object.keys(phi)])];
+  const f = F();
   let h = `<div class="sec">🔗 الربط ببرنامج التسميد والرش</div><div class="card">
     <div class="row"><b>الحالة</b><span class="tag ${f.linked && !f.error ? 't-ok' : f.error ? 't-red' : 't-g'}">${f.linked && !f.error ? 'شغال' : f.error ? 'فيه مشكلة' : 'مش متربط'}</span></div>
     ${f.error ? `<div class="warn">${esc(f.error)}</div>` : ''}
     <div class="muted" style="margin-top:6px">اكتب الكود السري بتاع أبلكيشن التسميد (نفس اللي بتدخل بيه هناك)</div>
     <div class="row" style="flex-wrap:nowrap;gap:6px"><input id="s_fc" type="password" dir="ltr" placeholder="${ST().fertLinked ? '••••• (متسجل — اكتب جديد لو عايز تغيّره)' : 'الكود السري'}" style="margin:0">
     <button class="btn" style="white-space:nowrap" onclick="saveFertCode()">حفظ</button></div></div>`;
-  h += `<div class="card"><h3>⏱️ فترة الأمان لكل رشة (بالأيام)</h3>
-    <div class="muted">عدد الأيام اللي العمالة متدخلش فيها الحوشة بعد الرشة. سيبها فاضية لو مفيش.</div>
-    ${sprays.length ? `<table>${sprays.map((s, i) => `<tr><td>${esc(s)}</td><td style="width:90px"><input id="phi_${i}" data-n="${escv(s)}" type="number" min="0" inputmode="numeric" value="${esc(phi[s] || '')}" style="margin:0"></td></tr>`).join('')}</table>
-      <button class="btn full" onclick="savePhi(${sprays.length})">حفظ فترات الأمان</button>` : '<div class="empty">أنواع الرش هتظهر هنا بعد الربط</div>'}</div>`;
   return h;
 }
 function saveFertCode(){ const c = val('s_fc'); if (!c) return toast('اكتب الكود السري'); run('saveSettings', { fertCode: c }, 'اتحفظ ✔ — بيتربط…'); }
-function savePhi(n){
-  const phi = {};
-  for (let i = 0; i < n; i++) { const e = document.getElementById('phi_' + i); if (e && Number(e.value) > 0) phi[e.dataset.n] = Number(e.value); }
-  run('saveSettings', { phi }, 'اتحفظ ✔');
-}
 
 /* ===================== الملخص (المدير) ===================== */
 function sumView(){
