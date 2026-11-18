@@ -19,7 +19,8 @@ body{margin:0;font-family:"Cairo",Tahoma,Arial,sans-serif;background:var(--bg);c
 .top{position:sticky;top:0;z-index:5}
 header{background:var(--g);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center}
 header small{opacity:.85}
-.hbtn{background:#ffffff26;color:#fff;border:0;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+.hbar{display:flex;gap:6px;align-items:center;flex-wrap:nowrap}
+.hbtn{white-space:nowrap;background:#ffffff26;color:#fff;border:0;border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
 nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:6px;padding:8px 10px;background:#fff;border-bottom:1px solid var(--line)}
 nav button{font:inherit;font-size:14px;padding:9px 6px;border:1px solid var(--line);border-radius:10px;background:#f6f8f5;color:var(--t);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 nav button.on{background:var(--g);border-color:var(--g);color:#fff;font-weight:700}
@@ -238,7 +239,7 @@ function render(keep){
   const y = window.scrollY;
   $('#app').innerHTML = trHTML(`<div class="top"><header>
       <div><b style="display:inline-flex;align-items:center;gap:6px"><img src="icon.svg" alt="" style="width:26px;height:26px;border-radius:7px">Farm Work Plan</b><br><small>${esc(S.me.name)}${INFLIGHT ? ' · ⏳ بيتحفظ…' : ''}</small></div>
-      <div>${S.me.role === 'manager' ? `<button class="hbtn" onclick="setLang(LANG === 'en' ? 'ar' : 'en')">${LANG === 'en' ? 'ع' : 'EN'}</button> ` : ''}<button class="hbtn" onclick="refresh()">↻ تحديث</button> <button class="hbtn" onclick="logout()">خروج</button></div>
+      <div class="hbar">${S.me.role === 'manager' ? `<button class="hbtn" onclick="setLang(LANG === 'en' ? 'ar' : 'en')">${LANG === 'en' ? 'ع' : 'EN'}</button> ` : ''}<button class="hbtn" onclick="refresh()">↻ تحديث</button> <button class="hbtn" onclick="logout()">خروج</button></div>
     </header>
     ${tabs.length > 1 ? `<nav>${tabs.map((t, i) => { const n = t[2] ? t[2]() : 0;
       return `<button class="${i === TAB ? 'on' : ''}" onclick="TAB=${i};render();scrollTo(0,0)">${t[0]}${n ? `<span class="badge">${n}</span>` : ''}</button>`; }).join('')}</nav>` : ''}
