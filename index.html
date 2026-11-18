@@ -31,7 +31,8 @@ main{max-width:720px;margin:auto;padding:14px 14px 60px}
 .tag{padding:2px 10px;border-radius:12px;font-size:12px;color:#fff;white-space:nowrap}
 .t-red{background:var(--r)}.t-or{background:var(--o)}.t-ok{background:var(--ok)}.t-b{background:var(--b)}.t-g{background:#8a948c}
 input,select,textarea{width:100%;padding:10px;border:1px solid #cdd6cb;border-radius:8px;font:inherit;margin:4px 0;background:#fff;color:var(--t)}
-textarea{min-height:64px;resize:vertical}
+textarea{min-height:64px;resize:vertical;field-sizing:content;max-height:50vh}
+#w_task{min-height:44px}
 .btn{border:0;border-radius:8px;padding:9px 14px;font:inherit;color:#fff;background:var(--g);cursor:pointer}
 .btn.r{background:var(--r)}.btn.b{background:var(--b)}.btn.o{background:var(--o)}.btn.l{background:#eef2ed;color:var(--t)}
 .btn.full{width:100%;margin-top:6px}
@@ -250,14 +251,14 @@ function workView(){
 
   if (role !== 'supervisor') {
     h += `<details class="card" ${role === 'engineer' ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
-      <input id="w_task" placeholder="الشغلانة (تقليم، تعشيب، رش…)">
+      <textarea id="w_task" rows="2" placeholder="الشغلانة (تقليم، تعشيب، رش…)"></textarea>
       <div class="chips" style="margin:6px 0 2px">
         <button class="chip ${LTYPE === 'يومية' ? 'on' : ''}" onclick="LTYPE='يومية';render(true)">عمالة باليومية</button>
         <button class="chip ${LTYPE === 'ثابتة' ? 'on' : ''}" onclick="LTYPE='ثابتة';render(true)">عمالة ثابتة</button></div>
       <div class="grid2"><input id="w_hosha" list="hl" placeholder="الحوشة"><input id="w_n" type="number" min="0" inputmode="numeric" placeholder="العدد"></div>
       <datalist id="hl">${hoshas.map(x => `<option value="${esc(x)}">`).join('')}</datalist>
       <select id="w_sup">${S.users.filter(u => u.role === 'supervisor').map(u => `<option value="${escv(u.name)}">${esc(u.name)}</option>`).join('')}<option value="">أي مشرف</option></select>
-      <input id="w_notes" placeholder="ملاحظة (اختياري)">
+      <textarea id="w_notes" rows="3" placeholder="ملاحظة (اختياري)"></textarea>
       <button class="btn full" onclick="addWork()">إضافة</button></details>`;
   }
 
@@ -274,10 +275,10 @@ function workView(){
 }
 function workCard(w){
   const role = S.me.role;
-  let h = `<div class="card"><div class="row"><b>${esc(w.task)}${w.hosha ? ' — ' + esc(w.hosha) : ''}</b>
+  let h = `<div class="card"><div class="row"><b style="white-space:pre-wrap">${esc(w.task)}${w.hosha ? ' — ' + esc(w.hosha) : ''}</b>
     <span class="tag ${WST[w.status] || 't-g'}">${escv(w.status)}</span></div>
     <div class="muted">👷 ${(w.ltype || 'يومية') === 'يومية' ? 'عمالة باليومية' : 'عمالة ثابتة'}: ${esc(w.workers)} · من ${esc(w.by)}${w.sup ? ' · المشرف: ' + esc(w.sup) : ''}</div>
-    ${w.notes ? `<div class="muted">📝 ${esc(w.notes)}</div>` : ''}
+    ${w.notes ? `<div class="muted" style="white-space:pre-wrap">📝 ${esc(w.notes)}</div>` : ''}
     ${w.names ? `<div class="muted">الرجالة: ${esc(w.names)}</div>` : ''}`;
   if (role === 'supervisor' && w.status !== 'تم') {
     h += `<input id="nm_${w.id}" placeholder="أسماء الرجالة (اختياري)" value="${esc(w.names)}">
@@ -373,11 +374,11 @@ function orderCard(o, canDone){
     <div style="margin-top:6px;white-space:pre-wrap">${esc(o.text)}</div>
     <div class="muted">${esc(o.created)}${o.due ? ' · آخر ميعاد ' + esc(o.due) : ''}</div>`;
   if (log.length) {
-    h += `<div class="steps">${log.map(c => `<div class="step"><div>${esc(c.text)}</div><div class="muted">${esc(c.by)} · ${esc(c.t)}</div></div>`).join('')}</div>`;
+    h += `<div class="steps">${log.map(c => `<div class="step"><div style="white-space:pre-wrap">${esc(c.text)}</div><div class="muted">${esc(c.by)} · ${esc(c.t)}</div></div>`).join('')}</div>`;
   }
   if (o.status === 'تم') h += `<div class="muted">✔ ${esc(o.doneAt)}</div>${o.note ? `<div class="reply">💬 ${esc(o.note)}</div>` : ''}`;
   if (canAct && o.status !== 'تم') {
-    h += `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:nowrap"><input id="oc_${o.id}" placeholder="مرحلة اتعملت أو تعليق…" style="margin:0">
+    h += `<div class="row" style="gap:6px;margin-top:8px;flex-wrap:nowrap"><textarea id="oc_${o.id}" rows="2" placeholder="مرحلة اتعملت أو تعليق…" style="margin:0;min-height:44px"></textarea>
       <button class="btn b" style="white-space:nowrap" onclick="commentOrder('${o.id}')">إضافة</button></div>`;
   }
   const btns = [];
