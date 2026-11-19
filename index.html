@@ -186,16 +186,16 @@ function run(action, data, msg){
   QUEUE = QUEUE.then(() => api(action, data)).then(d => {
     INFLIGHT--;
     if (INFLIGHT === 0) { S = d; saveCache(); }
-    render(true);
+    softRender();
   }).catch(e => {
     INFLIGHT--; toast('⚠ متحفظش: ' + e.message);
-    if (INFLIGHT === 0) refresh(true); else render(true);
+    if (INFLIGHT === 0) refresh(true); else softRender();
   });
 }
 async function refresh(silent){
   if (INFLIGHT) return;
   if (!silent) toast('بيتحدث…');
-  try { const d = await api('load'); if (INFLIGHT) return; S = d; saveCache(); render(true); if (!silent) toast('اتحدث ✔'); }
+  try { const d = await api('load'); if (INFLIGHT) return; S = d; saveCache(); softRender(); if (!silent) toast('اتحدث ✔'); }
   catch (e) { if (!silent) toast('⚠ ' + e.message); }
 }
 
@@ -232,8 +232,17 @@ const TABS = {
   supervisor:[['الشغل', workView, myOpenWork]]
 };
 function goTab(name){ TAB = Math.max(0, TABS[S.me.role].findIndex(t => t[0] === name)); render(); scrollTo(0, 0); }
+/* ===== متقفلش الكيبورد: مفيش إعادة رسم للصفحة وإنت بتكتب ===== */
+let PENDING_RENDER = false;
+function typing(){
+  const a = document.activeElement;
+  return !!(a && a.closest && a.closest('main') && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+}
+function softRender(){ if (typing()) { PENDING_RENDER = true; return; } PENDING_RENDER = false; render(true); }
+document.addEventListener('focusout', () => setTimeout(() => { if (PENDING_RENDER && !typing()) softRender(); }, 300));
 function render(keep){
-  const kept = {};
+  const kept = {}, act = document.activeElement, actId = act && act.id && /^(INPUT|TEXTAREA)$/.test(act.tagName) ? act.id : '';
+  let sel = null; try { if (actId) sel = [act.selectionStart, act.selectionEnd]; } catch (e) {}
   if (keep) document.querySelectorAll('main input[id], main textarea[id], main select[id]').forEach(e => kept[e.id] = e.value);
   const tabs = TABS[S.me.role];
   if (!tabs) { $('#app').innerHTML = trHTML('<div class="empty">الدور ده مش متعرف في شيت Users</div>'); return; }
@@ -247,6 +256,7 @@ function render(keep){
       return `<button class="${i === TAB ? 'on' : ''}" onclick="TAB=${i};render();scrollTo(0,0)">${t[0]}${n ? `<span class="badge">${n}</span>` : ''}</button>`; }).join('')}</nav>` : ''}
     </div><main>${tabs[TAB][1]()}</main>`);
   Object.keys(kept).forEach(id => { const e = document.getElementById(id); if (e) e.value = kept[id]; });
+  if (actId) { const e = document.getElementById(actId); if (e) { e.focus({ preventScroll: true }); try { if (sel) e.setSelectionRange(sel[0], sel[1]); } catch (x) {} } }
   window.scrollTo(0, y);
 }
 
