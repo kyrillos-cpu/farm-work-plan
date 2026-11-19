@@ -302,17 +302,9 @@ function workView(){
   const hoshas = [...new Set([...(F().crops || []).map(c => c.name), ...S.work.map(w => w.hosha)].filter(Boolean))];
   let h = '';
 
-  const pend = S.work.filter(w => w.approval === 'بانتظار').sort((a, b) => a.date.localeCompare(b.date));
-  if (role === 'manager' && pend.length) h += `<div class="sec">⏳ أوامر تشغيل بانتظار اعتمادك (${pend.length})</div>` + pend.map(workCard).join('');
   h += `<div class="chips">${[-1, 0, 1].map(n => { const d = addDays(n);
       return `<button class="chip ${DAY === d ? 'on' : ''}" onclick="DAY='${d}';render()">${dayName(d)}</button>`; }).join('')}
     <input type="date" value="${DAY}" onchange="DAY=this.value;render()" style="width:auto;margin:0;padding:6px"></div>`;
-  if (tasks.length) h += `<div class="sec">📝 المهام والاستفسارات المفتوحة (${tasks.length})</div>` + tasks.map(workCard).join('');
-
-  h += `<div class="stats"><div class="stat"><b>${list.length}</b>شغلانة</div>
-    <div class="stat"><b>${tot}</b>عمالة باليومية</div><div class="stat"><b>${done}/${list.length}</b>خلص</div></div>
-    ${fixed ? `<div class="muted" style="text-align:center;margin:-4px 0 10px">+ ${fixed} عمالة ثابتة</div>` : ''}`;
-
   if (role !== 'supervisor') {
     const P = PREFILL && PREFILL.date === DAY ? PREFILL : null;
     h += `<details class="card ${P ? 'prog' : ''}" ${role === 'engineer' || P ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
@@ -337,6 +329,14 @@ function workView(){
       <textarea id="w_notes" rows="3" placeholder="ملاحظة (اختياري)">${P ? esc(P.notes) : ''}</textarea>
       <button class="btn full" onclick="addWork()">إضافة</button></details>`;
   }
+
+  const pend = S.work.filter(w => w.approval === 'بانتظار').sort((a, b) => a.date.localeCompare(b.date));
+  if (role === 'manager' && pend.length) h += `<div class="sec">⏳ أوامر تشغيل بانتظار اعتمادك (${pend.length})</div>` + pend.map(workCard).join('');
+  if (tasks.length) h += `<div class="sec">📝 المهام والاستفسارات المفتوحة (${tasks.length})</div>` + tasks.map(workCard).join('');
+
+  h += `<div class="stats"><div class="stat"><b>${list.length}</b>شغلانة</div>
+    <div class="stat"><b>${tot}</b>عمالة باليومية</div><div class="stat"><b>${done}/${list.length}</b>خلص</div></div>
+    ${fixed ? `<div class="muted" style="text-align:center;margin:-4px 0 10px">+ ${fixed} عمالة ثابتة</div>` : ''}`;
 
   h += list.length ? list.map(workCard).join('') : `<div class="empty">مفيش شغل متسجل لـ ${dayName(DAY)}</div>`;
 
