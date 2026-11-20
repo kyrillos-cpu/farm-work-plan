@@ -556,8 +556,8 @@ function budView(){
     ${Object.keys(byCat).length ? `<div class="chips" style="margin:8px 0 0">${Object.entries(byCat).sort((a, b) => b[1] - a[1])
       .map(([c, v]) => `<span class="chip" style="cursor:default">${escv(c)}: ${num(v)}</span>`).join('')}</div>` : ''}</div>`;
 
-  if (isNext) {
-    h += `<div class="card"><h3>➕ بند جديد</h3><input id="b_i" placeholder="البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)">
+  if (isNext || isCur) {
+    h += `<div class="card"><h3>➕ بند جديد${isCur ? ' — ' + monthName(m) : ''}</h3><input id="b_i" placeholder="البند (مثلاً: سلفات بوتاسيوم 20 شيكارة)">
       <div class="grid2"><select id="b_c">${BCATS.map(c => `<option value="${c}">${c}</option>`).join('')}</select>
       <input id="b_a" type="number" min="0" inputmode="numeric" placeholder="المبلغ"></div>
       <button class="btn full" onclick="addBudget()">إضافة</button></div>`;
@@ -571,7 +571,7 @@ function budView(){
       const st = b.status || '', off = st === 'ملغي';
       let act = '';
       if (isNext || isCur) act = st ? `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span><br><button class="mini l" onclick="setBudget('${b.id}','')">رجوع</button>`
-        : `<button class="mini" style="background:var(--ok)" onclick="setBudget('${b.id}','تم')">تم ✔</button>${isNext ? ((mgr || b.by === S.me.name) ? `<button class="x" onclick="delBudget('${b.id}')">✕</button>` : '') : `<button class="mini" style="background:var(--r)" onclick="setBudget('${b.id}','ملغي')">إلغاء</button>`}`;
+        : `<button class="mini" style="background:var(--ok)" onclick="setBudget('${b.id}','تم')">تم ✔</button>${isNext ? '' : `<button class="mini" style="background:var(--r)" onclick="setBudget('${b.id}','ملغي')">إلغاء</button>`}${(mgr || b.by === S.me.name) ? `<button class="x" onclick="delBudget('${b.id}')">✕</button>` : ''}`;
       if (!isNext && !isCur && st) act = `<span class="tag ${st === 'تم' ? 't-ok' : 't-g'}">${st}</span>`;
       return `<tr style="${off ? 'opacity:.5;text-decoration:line-through' : ''}"><td>${esc(b.item)}
         <div class="muted">${escv(b.category)} · ${esc(b.by)}</div>
@@ -586,7 +586,7 @@ function setBudget(id, status){ run('setBudget', { id, status }, status === 'ت�
 function addBudget(){
   const item = val('b_i'), amount = val('b_a');
   if (!item) return toast('اكتب البند'); if (!(Number(amount) > 0)) return toast('اكتب المبلغ');
-  run('addBudget', { month: S.months.next, item, category: val('b_c'), amount }, 'اتضاف ✔');
+  run('addBudget', { month: BMONTH === 'current' ? S.months.current : S.months.next, item, category: val('b_c'), amount }, 'اتضاف ✔');
 }
 function delBudget(id){ if (confirm(tr('تحذف البند ده؟'))) run('delBudget', { id }, 'اتحذف'); }
 
