@@ -183,9 +183,38 @@ function localApply(a, d){
     S.cash = (S.cash || []).filter(x => x.id !== d.id);
   }
 }
+/* ===== المسودات: اللي بتكتبه بيفضل محفوظ لو غيرت التاب أو التاريخ أو قفلت الأبلكيشن ===== */
+let DRAFT = {}, ADD_OPEN = false;
+try { DRAFT = JSON.parse(localStorage.getItem('fwp_draft') || '{}') || {}; } catch (e) {}
+function saveDraft(){ try { localStorage.setItem('fwp_draft', JSON.stringify(DRAFT)); } catch (e) {} }
+function onDraftInput(e){
+  const t = e.target;
+  if (!t || !t.id || !t.closest || !t.closest('main') || !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.type === 'date' || t.type === 'password') return;
+  if (t.value === '' || t.value === undefined) delete DRAFT[t.id]; else DRAFT[t.id] = t.value;
+  saveDraft();
+}
+document.addEventListener('input', onDraftInput, true);
+document.addEventListener('change', onDraftInput, true);
+document.addEventListener('toggle', e => { if (e.target && e.target.id === 'addform') ADD_OPEN = e.target.open; }, true);
+const DRAFT_KEYS = {
+  addWork: ['w_task', 'w_notes', 'w_n', 'w_hosha', 'w_rate', 'w_unit'], addReq: ['rq_d', 'sv_d'], addBudget: ['b_i', 'b_a'],
+  addCash: ['c_amt', 'c_party', 'c_item', 'c_qty', 'c_notes'], addUser: ['u_n', 'u_p'], addOrder: ['o_t', 'o_due'],
+  replyReq: d => ['rp_' + d.id], commentWork: d => ['wc_' + d.id], approveWork: d => ['an_' + d.id], updWork: d => ['ac_' + d.id, 'ct_' + d.id, 'un_' + d.id, 'nm_' + d.id]
+};
+function clearDraft(action, d){
+  const k = DRAFT_KEYS[action]; if (!k) return;
+  (typeof k === 'function' ? k(d || {}) : k).forEach(id => { delete DRAFT[id]; const e = document.getElementById(id); if (e && e.tagName !== 'SELECT') e.value = ''; });
+  if (action === 'addWork') ADD_OPEN = false;
+  saveDraft();
+}
+function applyDraft(){
+  Object.keys(DRAFT).forEach(id => { const e = document.getElementById(id); if (e && (e.value === '' || e.tagName === 'SELECT')) e.value = DRAFT[id]; });
+}
+
 function run(action, data, msg){
   if (data && String(data.id || '').indexOf('tmp') === 0) return toast('استنى ثانية لحد ما يتحفظ');
   try { localApply(action, data); } catch (e) { return toast('⚠ ' + e.message); }
+  clearDraft(action, data);
   INFLIGHT++; render(); saveCache(); if (msg) toast(msg);
   QUEUE = QUEUE.then(() => api(action, data)).then(d => {
     INFLIGHT--;
@@ -221,7 +250,8 @@ async function doLogin(){
   } catch (e) { toast('⚠ ' + e.message); }
 }
 function logout(){
-  try { localStorage.removeItem('fwp_phone'); localStorage.removeItem('fwp_cache'); } catch (e) {}
+  try { localStorage.removeItem('fwp_phone'); localStorage.removeItem('fwp_cache'); localStorage.removeItem('fwp_draft'); } catch (e) {}
+  DRAFT = {};
   PIN = ''; S = null; loginView();
 }
 
@@ -260,6 +290,7 @@ function render(keep){
       return `<button class="${i === TAB ? 'on' : ''}" onclick="TAB=${i};render();scrollTo(0,0)">${t[0]}${n ? `<span class="badge">${n}</span>` : ''}</button>`; }).join('')}</nav>` : ''}
     </div><main>${tabs[TAB][1]()}</main>`);
   Object.keys(kept).forEach(id => { const e = document.getElementById(id); if (e) e.value = kept[id]; });
+  applyDraft();
   if (actId) { const e = document.getElementById(actId); if (e) { e.focus({ preventScroll: true }); try { if (sel) e.setSelectionRange(sel[0], sel[1]); } catch (x) {} } }
   window.scrollTo(0, y);
 }
@@ -322,7 +353,7 @@ function workView(){
     <input type="date" value="${DAY}" onchange="DAY=this.value;render()" style="width:auto;margin:0;padding:6px"></div>`;
   if (role !== 'supervisor') {
     const P = PREFILL && PREFILL.date === DAY ? PREFILL : null;
-    h += `<details class="card ${P ? 'prog' : ''}" ${role === 'engineer' || P ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
+    h += `<details id="addform" class="card ${P ? 'prog' : ''}" ${role === 'engineer' || P || ADD_OPEN || DRAFT.w_task || DRAFT.w_notes ? 'open' : ''}><summary>➕ إضافة شغلانة لـ ${dayName(DAY)}</summary>
       <div class="chips" style="margin:8px 0 4px">
         <button class="chip ${WKIND === 'تشغيل' ? 'on' : ''}" onclick="WKIND='تشغيل';render(true)">🚜 أمر تشغيل</button>
         <button class="chip ${WKIND === 'مهمة' ? 'on' : ''}" onclick="WKIND='مهمة';render(true)">📝 مهمة أو استفسار</button></div>
